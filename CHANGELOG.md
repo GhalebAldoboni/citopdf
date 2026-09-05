@@ -3,6 +3,10 @@
 All notable changes, grouped by release. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## 1.2.1
+
+- Fix: citation popups did not appear in the embedded viewer. Scholar's sandboxed loader page was not web-accessible, so Chrome refused to load it in a frame under a web page and the analyzer never received the document. Listed like Scholar does.
+
 ## 1.2.0 · Real URLs
 
 - The address bar shows the PDF's own URL, as with Chrome's viewer. Transplanted from the Scholar reader's `contentscript-compiled.js`: `bg/main/embed.js` runs on the PDF page Chrome creates for the response and swaps its body for a full-window frame holding the viewer. Back, reload, bookmarks and "copy address" keep the PDF URL.

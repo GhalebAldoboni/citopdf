@@ -35,11 +35,12 @@
     "storage",
     "contextMenus"
   ],
-  "version": "1.2.0",
+  "version": "1.2.1",
   "web_accessible_resources": [
     {
       "resources": [
-        "/bg/helper/web/viewer.html"
+        "/bg/helper/web/viewer.html",
+        "/pdf_loader_iframe.html"
       ],
       "matches": [
         "<all_urls>"
