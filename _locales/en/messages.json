@@ -3,6 +3,6 @@
     "message": "Scholar PDF Viewer Lite"
   },
   "description": {
-    "message": "A pdf.js viewer for Chrome with Google Scholar citation popups, native printing and smooth zoom."
+    "message": "Pdf.js based viewer with in-text citation popups, heavy feature and performance optimisations."
   }
 }

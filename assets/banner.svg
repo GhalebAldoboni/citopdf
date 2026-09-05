@@ -19,7 +19,7 @@
 
   <!-- title block -->
   <text x="72" y="150" font-size="56" font-weight="700" fill="#f1f3f4" letter-spacing="-1">Scholar PDF Viewer <tspan fill="url(#accent)">Lite</tspan></text>
-  <text x="74" y="196" font-size="22" fill="#9aa0a6">A pdf.js port with in-text citations. Fast on any machine.</text>
+  <text x="74" y="196" font-size="22" fill="#9aa0a6">pdf.js based viewer with in-text citation popups, heavily optimised.</text>
   <rect x="74" y="222" width="120" height="4" rx="2" fill="url(#accent)"/>
   <g font-size="15" fill="#bdc1c6">
     <text x="74" y="270">▸  Click a citation, read the paper in place</text>
