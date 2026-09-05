@@ -18,21 +18,21 @@
 
 ## Why not the others?
 
-| | Chrome PDF viewer | Google Scholar PDF Reader | **Scholar PDF Viewer Lite** |
-|---|:---:|:---:|:---:|
-| In-text citation popups | – | ✓ | ✓ |
-| Cite / Save to Scholar library | – | ✓ | ✓ |
-| Renders with one engine (no second viewer running) | ✓ | – | ✓ |
-| 60 fps pinch zoom, one render per gesture | – | – | ✓ |
-| Sharp at 300%+ on Retina | – | – | ✓ |
-| Smooth on heavy scanned PDFs | – | – | ✓ |
-| Adapts to weak devices (memory, cores) | – | – | ✓ |
-| Off-screen pages cost nothing to scroll past | – | – | ✓ |
-| Text layers only for pages in view | – | – | ✓ |
-| Vector printing | ✓ | ✓ | ✓ |
-| Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | ✓ |
-| Dark theme with readable popup | – | ✓ | ✓ |
-| Open source | – | – | ✓ |
+| | Chrome PDF viewer | Google Scholar PDF Reader | Stock pdf.js viewer | **Scholar PDF Viewer Lite** |
+|---|:---:|:---:|:---:|:---:|
+| In-text citation popups | – | ✓ | – | ✓ |
+| Cite / Save to Scholar library | – | ✓ | – | ✓ |
+| Renders with one engine (no second viewer running) | ✓ | – | ✓ | ✓ |
+| 60 fps pinch zoom, one render per gesture | – | – | – | ✓ |
+| Sharp at 300%+ on Retina | – | – | – | ✓ |
+| Smooth on heavy scanned PDFs | – | – | – | ✓ |
+| Adapts to weak devices (memory, cores) | – | – | – | ✓ |
+| Off-screen pages cost nothing to scroll past | – | – | – | ✓ |
+| Text layers only for pages in view | – | – | – | ✓ |
+| Vector printing | ✓ | ✓ | – (150 dpi raster) | ✓ |
+| Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | – | ✓ |
+| Dark theme with readable popup | – | ✓ | – | ✓ |
+| Open source | – | – | ✓ | ✓ |
 
 <br>
 
