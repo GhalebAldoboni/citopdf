@@ -28,7 +28,8 @@ unless stated otherwise.
 | pdf.js pre-renders exactly one page beyond the visible ones, so a fast scroll or page-down lands on blank pages. | Look-ahead widened to two pages in the scroll direction plus one behind, inside pdf.js's own priority rules and 10-page cache (`smooth.js`). | Page-down lands on rendered pages. |
 | Each page's text layer is measured and inserted synchronously the moment its canvas paints. After a zoom commit or a jump, several pages finish in the same frame and their text layers stack into one 100 to 300 ms stall. | Text layers are queued and built one per animation frame, only once scrolling and pinching have settled for 120 ms (`bg/main/perf.js`). Canvases are never delayed. | The stall after a zoom commit is gone; selection and find highlights appear a few frames later. |
 | During a fling, every scroll frame starts renders for pages that are gone a few frames later. pdf.js pauses them once they lose priority, but the canvas allocation and worker kick-off are wasted and compete with scrolling. | Above 2500 px/s no new renders start. One update runs as soon as the scroll settles (`perf.js`). | The pages you stop on render immediately instead of queuing behind pages that flew past. |
-| The citation analysis parses the whole PDF a second time. | It runs in Scholar's Web Worker with a sandboxed loader, scheduled with `requestIdleCallback` after the pages have loaded, and the loader is torn down afterwards. | About 300 ms of main-thread time once per document, never during scrolling. |
+| The citation analysis parses the whole PDF a second time. | It runs in Scholar's Web Worker with a sandboxed loader, scheduled with `requestIdleCallback` after the pages have loaded, and the loader is torn down afterwards so the second parsed copy is freed. | On a 26-page paper: 53 references and 65 citation groups found in about 4.5 s of background time, costing 303 ms of main-thread time in two tasks, never during scrolling. |
+| The Scholar reader renders every page as a bitmap posted through its sandboxed iframe, which is why it feels slow. | The viewer keeps its own direct pdf.js rendering; Scholar's code is used only for analysis and the popup. | One rendering engine. |
 
 ## Weak devices
 
@@ -55,6 +56,7 @@ unless stated otherwise.
 | The `file://` listener was registered inside an async callback, which does not wake a sleeping service worker. | Registered synchronously at top level; file access is checked per event. | Local PDFs open reliably. |
 | Publisher pages that embed the PDF in a full-page frame (IEEE, Wiley, ProQuest, EBSCO) never trigger a top-frame rule. | The content script inside the PDF frame reports to the top page; a frame that fills the page, or shares a publisher family with it, is opened in the viewer with the page as Referer. | Publisher links open in the viewer. |
 | Context menus were recreated on every service worker start without clearing, spamming "duplicate id" errors. | Menus are created after `removeAll()`. | Clean console. |
+| The dead blocking listener still required the `webRequest` permission. | Permissions trimmed to `declarativeNetRequest`, `webNavigation`, `storage`, `contextMenus`. | Smaller permission prompt, no runtime request hooks. |
 
 ## Popup
 

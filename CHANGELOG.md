@@ -1,0 +1,67 @@
+# Changelog
+
+All notable changes, grouped by release. Every item was verified in Chrome for
+Testing with the unpacked extension unless marked otherwise.
+
+## 1.1.0 · Lite
+
+### Performance
+- Device profile (`bg/main/device.js`): machines with 4 GB or less, or two cores, keep pdf.js's 16 MP canvas cap, pre-render one page ahead, gate flings from 1800 px/s and wait 200 ms before text layers.
+- `content-visibility: auto` on off-screen pages (`bg/main/perf.css`): the cached pages' text layers cost no layout or paint while scrolling. Pages hosting an open citation popup are excluded.
+- Text layers are built visible-first: pre-rendered pages get their canvas now and their text layer when they scroll into view.
+- `contain: layout` on text layers.
+
+### Housekeeping
+- Renamed to Scholar PDF Viewer Lite.
+- Removed the original viewer's Web Store rating prompt, its jQuery copy, the store `update_url` and the dead donate button.
+- The Scholar account lookup runs on the first popup, not on every viewer load.
+- README: comparison against Chrome, Scholar and stock pdf.js; privacy section.
+
+## 1.0.0
+
+### Citations (transplanted from the Google Scholar PDF Reader)
+- Scholar's citation engine runs as-is: the analyzer Web Worker (`analyzer_worker_bin.js`) and its sandboxed pdf.js loader iframe (`pdf_loader_iframe.html`, `pdf_loader-compiled.js`, `pdf.min.js`, `pdf.worker.min.js`, `bcmaps/`), which feeds it page text and annotations in Scholar's protobuf format. The only edit to the worker is one line so it emits its result as JSON instead of binary protobuf, which avoids shipping Scholar's proto runtime.
+- Bridge and UI lifted from `reader-compiled.js` into `bg/main/scholar-citations.js` with Scholar's identifiers kept so the code diffs against the bundle: loader host, worker bootstrap, page overlays, dialog widget, popover stack, reference popup with prev/next across grouped citations, "See in References".
+- Author-year and numbered citation styles.
+- Popup styles are Scholar's own rules from `reader-prod.css`, hooked to the viewer's light and dark themes.
+- Scholar search in the popup: title, authors line, snippet with Show more/less, Cited by, Related, Versions and full-text links, Search Scholar / Search Google fallbacks, error banner.
+- Cite dialog (MLA, APA, Chicago rows; BibTeX, EndNote, RefMan, RefWorks links) and Save-to-library dialog with labels, new label, remove; sign-in flow when there is no Scholar session.
+- Popup links open in a new tab instead of navigating the PDF away.
+- Neutral, high-contrast dark palette for the popup; Scholar's base anchor colours scoped to the popup.
+- The loader iframe is torn down after analysis so the second parsed copy of the PDF is freed.
+- Measured on a 26-page arXiv paper: 53 references, 65 citation groups on 16 pages, about 4.5 s of analysis after the first pages render, 303 ms of main-thread time in two long tasks.
+
+### Printing
+- Vector printing through Chrome's built-in PDF engine, Scholar's approach: `bg/main/printscript.js` runs inside the PDF frame and prints on a postMessage handshake; `bg/main/nativeprint.js` overrides the viewer's print so the toolbar button, Ctrl/Cmd+P and PDF auto-print all go vector.
+- Fallback to pdf.js printing at 300 dpi (was 150) for form-edited documents, non-PDF responses or a disabled plugin.
+- Not verified headless: the print dialog itself.
+
+### Zoom (`bg/main/smooth.js`)
+- Compositor preview of the gesture with a CSS transform around the cursor; one pdf.js render per gesture. Stock pdf.js re-rendered every visible page on every wheel tick.
+- Trackpad pinch mapped to a continuous factor, `clamp(exp(-deltaY / 100), 0.8, 1.25)`, from Scholar's reader, instead of pdf.js's 10% ticks.
+- Gesture ends after 350 ms without input or immediately on scroll, click, key press, Ctrl/Cmd release or tab switch; toolbar and keyboard steps commit after 150 ms.
+- Scroll updates suspended during the gesture.
+- Geometric anchoring: the PDF point under the cursor is put back under the cursor after the commit (pdf.js drifted about 200 px on narrow pages).
+- Canvas cap raised from 16 to 48 MP: true 2x render up to about 380% on Retina.
+- Mid-pinch re-sharpen once the preview passes 2x or 0.5x.
+- pdf.js's Ctrl+wheel handler bypassed, including its one-second zoom lockout after a scroll.
+- `will-change: transform` during the gesture so Chrome does not re-rasterise the layer per frame.
+- Verified with a synthetic 40-event pinch at Retina resolution: 61 fps, zero renders during a hesitating pinch and one at the end, final scale matches Scholar's formula, anchor point unchanged.
+
+### Scrolling and rendering
+- Look-ahead widened from one page to two ahead plus one behind, inside pdf.js's priority rules and 10-page cache.
+- `bg/main/perf.js`: text layers built one per idle frame after scrolling settles; no render starts above 2500 px/s, one update when the scroll settles.
+
+### Opening PDFs (`worker.js`)
+- The original viewer used a blocking `webRequest` listener, which Manifest V3 forbids for sideloaded extensions, and read misspelt event fields, so PDFs never auto-opened. Replaced with `declarativeNetRequest` rules matched on response headers: PDF content types, generic binary types with a `.pdf` path, attachments named `.pdf`; GET only; downloads from the viewer allowed through.
+- Permissions trimmed to `declarativeNetRequest`, `webNavigation`, `storage`, `contextMenus`; `webRequest` removed.
+- Context menus recreated after `removeAll()`, ending the "duplicate id" errors.
+- `file://` PDFs: handler field names fixed, listener registered synchronously so it wakes the service worker, errors shown instead of a blank page, "Allow access to file URLs" hint.
+- `replace.js` re-encodes a raw `?file=` URL once, since redirect rules cannot percent-encode.
+- Publisher pages that embed the PDF in a full-page frame (IEEE Xplore, Wiley, ProQuest, EBSCO) open in the viewer with the page as Referer.
+- Download fallback in the viewer fetches to a blob instead of navigating the tab away.
+- Verified navigations: `paper.pdf?x=1&y=2#page=3` keeps the full URL and lands on page 3; octet-stream `.pdf`; attachment with `.pdf` filename; HTML pages untouched; viewer download marker untouched.
+
+### Packaging
+- Manifest: `sandbox` entry for the loader page, `content_scripts` entry for the print helper on all URLs (exits immediately outside PDF frames).
+- The store-only `_metadata` folder removed, since Chrome refuses to load unpacked extensions containing it.

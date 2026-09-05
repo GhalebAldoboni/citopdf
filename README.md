@@ -43,7 +43,7 @@
 <td width="50%" valign="top">
 
 ### 📎 Citations, in place
-Click `[12]` or `(Vaswani et al., 2017)`. The reference is resolved on Google Scholar and shown where you are: title, authors, venue, snippet with *Show more*, links to *Cited by*, *Related*, *Versions* and full text. *See in References* jumps to the bibliography entry.
+Click `[12]` or `(Vaswani et al., 2017)`. Scholar's own analyzer finds every citation and reference in a background worker; the reference is resolved on Google Scholar and shown where you are: title, authors, venue, snippet with *Show more*, links to *Cited by*, *Related*, *Versions* and full text. Grouped citations like `[3, 7, 12]` page through with prev/next. *See in References* jumps to the bibliography entry.
 
 </td>
 <td width="50%" valign="top">
@@ -77,7 +77,7 @@ Direct links, download-style responses, `file://` files, and publisher pages tha
 <td valign="top">
 
 ### 🖨️ Vector printing, dark theme
-Printing goes through Chrome's own PDF engine for vector output. Light and dark themes, with a neutral, high-contrast popup palette in dark mode.
+The toolbar button, Ctrl/Cmd+P and PDF auto-print all go through Chrome's own PDF engine for vector output; the pdf.js fallback runs at 300 dpi. Light and dark themes, with a neutral, high-contrast popup palette in dark mode.
 
 </td>
 </tr>
@@ -115,7 +115,7 @@ The rule is simple: the main thread does nothing during a gesture, and only page
 - **Device profile**: on machines with 4 GB or less, or two cores, the canvas cap stays at 16 MP (192 MB less bitmap per page at high zoom), look-ahead drops to one page, and text layers wait a little longer. Rendering resolution is unchanged up to about 220% on Retina.
 - **Background citation analysis**: Scholar's analyzer worker at idle time, about 300 ms once per document.
 
-Every change, with its cause and measurement, is in **[PERFORMANCE.md](PERFORMANCE.md)**.
+Every change, with its cause and measurement, is in **[PERFORMANCE.md](PERFORMANCE.md)**. Release-by-release detail is in **[CHANGELOG.md](CHANGELOG.md)**.
 
 <br>
 
