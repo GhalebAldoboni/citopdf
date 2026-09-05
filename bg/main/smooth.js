@@ -89,6 +89,10 @@
     }
     function preview() {
       const k = targetScale() / base.scale;
+      // Keep the pages' raster and let the compositor scale it: without this
+      // Chrome re-rasterises the whole layer (canvases and text spans) on every
+      // scale change, which is the per-frame cost on heavy pages.
+      viewerEl.style.willChange = "transform";
       viewerEl.style.transformOrigin = "0 0";
       viewerEl.style.transform = k === 1 ? "" : `scale(${k})`;
       if (k > 1) {
@@ -100,6 +104,7 @@
       container.scrollTop = (base.st + base.dy) * k - base.dy;
     }
     function clearPreview() {
+      viewerEl.style.willChange = "";
       viewerEl.style.transform = "";
       viewerEl.style.transformOrigin = "";
       spacer.remove();
