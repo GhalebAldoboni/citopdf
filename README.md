@@ -1,91 +1,131 @@
-<div align="center">
+<p align="center">
+  <img src="assets/banner.svg" alt="Scholar PDF Viewer" width="100%">
+</p>
 
-<img src="icons/icon128.png" width="96" alt="Scholar PDF Viewer icon">
+<p align="center">
+  <a href="#quick-start"><img src="https://img.shields.io/badge/install-load%20unpacked-6f42c1?style=for-the-badge" alt="Load unpacked"></a>
+  <img src="https://img.shields.io/badge/manifest-v3-4c8eda?style=for-the-badge" alt="Manifest V3">
+  <img src="https://img.shields.io/badge/chrome-128%2B-34a853?style=for-the-badge" alt="Chrome 128+">
+  <img src="https://img.shields.io/badge/engine-pdf.js-d14836?style=for-the-badge" alt="pdf.js">
+  <img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey?style=for-the-badge" alt="Apache 2.0">
+</p>
 
-# Scholar PDF Viewer
+<br>
 
-**A port of pdf.js with in-text citations, built for speed.**
+**Scholar PDF Viewer** replaces Chrome's built-in PDF viewer with a port of pdf.js made for reading papers. Click any citation in the text and the referenced paper opens right there, looked up on Google Scholar: abstract snippet, *Cited by*, *Cite*, *Save to library*. Underneath, rendering is scheduled around what you are doing, so it stays quick and light on documents that make Chrome's viewer and the Scholar reader stutter.
 
-</div>
+<br>
 
-## What is this?
+## Why not the others?
 
-A Chrome extension that replaces the built-in PDF viewer with a pdf.js port tuned for reading papers. Click a citation in the text and the referenced paper appears in place, looked up on Google Scholar, with its abstract snippet, Cited by, Cite and Save. It is noticeably quicker and lighter than Chrome's own viewer or the Google Scholar PDF Reader: rendering is scheduled around what you are doing, zoom runs on the compositor, and heavy scanned or figure-dense PDFs stay smooth while you scroll and pinch.
+| | Chrome PDF viewer | Google Scholar PDF Reader | **Scholar PDF Viewer** |
+|---|:---:|:---:|:---:|
+| In-text citation popups | – | ✓ | ✓ |
+| Cite / Save to Scholar library | – | ✓ | ✓ |
+| Renders with one engine (no second viewer running) | ✓ | – | ✓ |
+| 60 fps pinch zoom, one render per gesture | – | – | ✓ |
+| Sharp at 300%+ on Retina | – | – | ✓ |
+| Smooth on heavy scanned PDFs | – | – | ✓ |
+| Vector printing | ✓ | ✓ | ✓ |
+| Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | ✓ |
+| Dark theme with readable popup | – | ✓ | ✓ |
+| Open source | – | – | ✓ |
 
-<div align="center">
+<br>
 
-![Manifest V3](https://img.shields.io/badge/manifest-v3-4c8eda?style=flat-square)
-![Chrome 128+](https://img.shields.io/badge/chrome-128%2B-34a853?style=flat-square)
-![pdf.js](https://img.shields.io/badge/engine-pdf.js-d14836?style=flat-square)
-![Unpacked](https://img.shields.io/badge/install-load%20unpacked-6f42c1?style=flat-square)
+## Features
 
-</div>
+<table>
+<tr>
+<td width="50%" valign="top">
 
----
+### 📎 Citations, in place
+Click `[12]` or `(Vaswani et al., 2017)`. The reference is resolved on Google Scholar and shown where you are: title, authors, venue, snippet with *Show more*, links to *Cited by*, *Related*, *Versions* and full text. *See in References* jumps to the bibliography entry.
 
-## What it does
+</td>
+<td width="50%" valign="top">
 
-- **In-text citation popups.** Click any `[12]` or `(Vaswani et al., 2017)` in a paper. The reference is looked up on Google Scholar and shown in place: title, authors, venue, snippet with *Show more*, plus *Cited by*, *Related*, *Versions* and full-text links.
-- **Cite and Save.** *Cite* opens Scholar's formatted citations (MLA, APA, Chicago, BibTeX, EndNote, RefMan, RefWorks). *Save* adds the paper to your Scholar library, with labels, when you are signed in.
-- **See in References.** Jumps to the matching entry in the bibliography.
-- **Opens PDFs everywhere.** Direct links, download-style responses, `file://` files, and publisher pages that embed the PDF in a full-page frame (IEEE Xplore, Wiley, ProQuest, EBSCO).
-- **Native printing.** Prints through Chrome's own PDF engine for vector output instead of rasterised pages.
-- **Smooth zoom.** Trackpad pinch and wheel zoom are previewed on the compositor and rendered once the gesture ends, sharp at high zoom.
-- **Built for heavy PDFs.** Scanned books and figure-dense papers scroll without stutter: page renders are not started while you fling, text layers are laid out in idle frames, and pinch zoom never re-rasterises the page mid-gesture.
-- **Dark and light themes** with a neutral, readable palette for the popup in dark mode.
+### 📚 Cite and Save
+*Cite* opens Scholar's formatted citations (MLA, APA, Chicago) and BibTeX, EndNote, RefMan and RefWorks exports. *Save* files the paper into your Scholar library with labels. Uses your existing Scholar sign-in; nothing is proxied.
 
-## Install
+</td>
+</tr>
+<tr>
+<td valign="top">
 
-1. Clone or download this repository.
-2. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and pick the repository folder.
-3. Optional but recommended:
-   - Turn on **Allow access to file URLs** on the extension card so local PDFs open in the viewer.
-   - Sign in to [Google Scholar](https://scholar.google.com) in Chrome to enable *Save* in the citation popup.
+### ⚡ Zoom that keeps up
+A pinch is previewed on the compositor and committed to pdf.js once, when your fingers stop. Continuous factor, fixed anchor point, sharp re-render past 2×. Stock pdf.js re-rendered every page on every tick.
 
-Reload the extension from the same page after pulling changes.
+</td>
+<td valign="top">
 
-## Using it
+### 🏋️ Built for heavy PDFs
+No renders start while you fling. Text layers are built in idle frames after the canvas is up. Two pages ahead are pre-rendered so page-down never lands on a blank page.
 
-| Action | Where |
-|---|---|
-| Open the viewer with a sample PDF | Click the toolbar icon |
-| Theme, rendering options, embedded PDF support | Right-click the toolbar icon |
-| Custom CSS for the viewer | Extension options page |
-| Open a link in the viewer | Right-click a link, *Open with Scholar PDF Viewer* |
-| Copy a link to the current page of the PDF | Toolbar button in the viewer |
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🌐 Opens everywhere
+Direct links, download-style responses, `file://` files, and publisher pages that wrap the PDF in a frame (IEEE Xplore, Wiley, ProQuest, EBSCO). Interception is header-matched with declarativeNetRequest, no request listener.
+
+</td>
+<td valign="top">
+
+### 🖨️ Vector printing, dark theme
+Printing goes through Chrome's own PDF engine for vector output. Light and dark themes, with a neutral, high-contrast popup palette in dark mode.
+
+</td>
+</tr>
+</table>
+
+<br>
+
+## Quick start
+
+```bash
+git clone https://github.com/GhalebAldoboni/scholar-pdf-viewer.git
+```
+
+1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the folder.
+2. On the extension card, enable **Allow access to file URLs** so local PDFs open here too.
+3. Sign in to [Google Scholar](https://scholar.google.com) in Chrome to enable *Save*.
+
+Open any PDF link. Citations turn blue a few seconds after the document loads.
+
+<br>
 
 ## Performance
 
-The viewer is tuned so that the main thread does nothing during a gesture and renders only what you will actually look at:
+The rule is simple: the main thread does nothing during a gesture, and only pages you will actually look at get rendered.
 
-- **Zoom on the compositor.** A pinch is previewed with a CSS transform and committed to pdf.js once, when the gesture ends. Stock pdf.js re-rendered every visible page on every wheel tick; here a pinch runs at 60 fps with a single render.
-- **Continuous pinch.** Trackpad deltas map to a continuous factor (Scholar's formula) instead of 10% steps, with the point under your fingers held fixed.
-- **Sharp at high zoom.** The canvas cap is raised from 16 to 48 MP, so pages render at true Retina resolution to roughly 380%, and a long pinch re-sharpens mid-gesture.
-- **Idle-frame text layers.** Text layers are built one per frame after scrolling settles, removing the 100 to 300 ms stall that followed every zoom commit or page jump.
-- **No renders mid-fling.** Fast scrolling does not start renders for pages that are about to leave; the pages you stop on render first.
-- **Wider look-ahead.** Two pages ahead and one behind are pre-rendered, so page-down lands on painted pages.
-- **Background citation analysis.** Scholar's analyzer runs in a worker at idle time, about 300 ms once per document.
-- **Header-matched interception.** PDFs are caught with declarativeNetRequest rules, no runtime request listener.
+- **Zoom on the compositor**: CSS transform preview, one pdf.js render per gesture, 61 fps measured on a figure-heavy paper.
+- **Continuous pinch**: trackpad deltas map to `exp(-Δy/100)` (Scholar's formula) instead of 10% steps; the point under your fingers stays put.
+- **Sharp at high zoom**: canvas cap raised 16 → 48 MP, true Retina resolution to roughly 380%.
+- **Idle-frame text layers**: built one per frame after scrolling settles, removing a 100 to 300 ms stall after every zoom or jump.
+- **No renders mid-fling**: above 2500 px/s nothing starts; the page you stop on renders first.
+- **Background citation analysis**: Scholar's analyzer worker at idle time, about 300 ms once per document.
 
-The full list, with causes and measurements, is in [PERFORMANCE.md](PERFORMANCE.md).
+Every change, with its cause and measurement, is in **[PERFORMANCE.md](PERFORMANCE.md)**.
 
-## How it works
+<br>
+
+## Under the hood
 
 | Part | Role |
 |---|---|
-| `worker.js` | Service worker. Redirects PDF responses to the viewer with declarativeNetRequest rules matched on response headers, handles `file://` PDFs, embedded PDF frames, context menus and options. |
-| `bg/helper/` | The pdf.js viewer and engine. |
-| `bg/main/scholar-citations.js` | Citation analysis and the reference popup, transplanted from the Google Scholar PDF Reader. Scholar's analyzer worker and sandboxed loader run unchanged; the UI keeps Scholar's identifiers so it can be diffed against the original bundle. |
-| `bg/main/nativeprint.js` | Vector printing through Chrome's built-in PDF viewer. |
-| `bg/main/smooth.js` | Compositor-previewed zoom with a single render per gesture. |
-| `bg/main/perf.js` | Render scheduling for heavy documents: text layers are built one per frame once scrolling settles, and no renders start mid-fling. |
-| `bg/main/printscript.js` | Content script inside PDF frames: print handshake and embedded-PDF detection. |
-| `bg/main/replace.js` | Theme wiring, viewer toolbar additions, URL normalisation. |
-| `analyzer_worker_bin.js`, `pdf_loader-compiled.js`, `pdf_loader_iframe.html`, `bcmaps/` | Scholar's citation analyzer and its PDF loader. |
+| `worker.js` | Service worker: header-matched PDF interception, `file://` PDFs, embedded publisher frames, context menus. |
+| `bg/helper/` | pdf.js 2.7 viewer and engine. |
+| `bg/main/scholar-citations.js` | Citation analysis and the reference popup, transplanted from the Google Scholar PDF Reader. Scholar's analyzer worker and sandboxed loader run unchanged; the UI keeps Scholar's identifiers so it diffs against the original bundle. |
+| `bg/main/smooth.js` | Compositor zoom, continuous pinch, look-ahead rendering. |
+| `bg/main/perf.js` | Render scheduling: idle-frame text layers, fling gating. |
+| `bg/main/nativeprint.js` | Vector printing through Chrome's PDF engine. |
+| `bg/main/printscript.js` | Content script inside PDF frames: print handshake, embedded-PDF detection. |
+| `bg/main/replace.js` | Theme wiring, toolbar additions, URL normalisation. |
 
-Scholar requests go straight from the viewer page to `scholar.google.com` with your existing cookies. Nothing is proxied through third parties.
-
-## Layout
+<details>
+<summary>Repository layout</summary>
 
 ```
 .
@@ -93,19 +133,24 @@ Scholar requests go straight from the viewer page to `scholar.google.com` with y
 ├── worker.js                 service worker
 ├── bg/
 │   ├── helper/               pdf.js viewer (web/) and engine (build/)
-│   └── main/                 viewer extensions: citations, print, zoom, theme
-├── analyzer_worker_bin.js    Scholar citation analyzer
-├── pdf_loader-compiled.js    Scholar PDF loader (sandboxed)
+│   └── main/                 citations, zoom, scheduling, print, theme
+├── analyzer_worker_bin.js    Scholar citation analyzer (Web Worker)
+├── pdf_loader-compiled.js    Scholar PDF loader (sandboxed iframe)
 ├── pdf_loader_iframe.html
-├── bcmaps/                   CJK CMaps used by the loader
+├── bcmaps/                   CJK CMaps for the loader
 ├── _locales/
-└── icons/
+├── icons/
+└── assets/
 ```
+
+</details>
+
+<br>
 
 ## Credits
 
 - [pdf.js](https://github.com/mozilla/pdf.js) by Mozilla, Apache License 2.0.
-- Citation analysis, reference popup, cite and library dialogs, native printing and pinch zoom logic from the [Google Scholar PDF Reader](https://chromewebstore.google.com/detail/google-scholar-pdf-reader/dahenjhkoodjbpjheillcadbppiidmhp) by Google LLC, carried over under the Apache License 2.0 headers in its source.
+- Citation analysis, reference popup, Cite and library dialogs, native printing and pinch logic from the [Google Scholar PDF Reader](https://chromewebstore.google.com/detail/google-scholar-pdf-reader/dahenjhkoodjbpjheillcadbppiidmhp) by Google LLC, carried over under the Apache License 2.0 headers in its source.
 - The viewer shell started from the open-source *PDF Viewer* Chrome extension.
 
-This project is not affiliated with or endorsed by Google or Mozilla.
+Not affiliated with or endorsed by Google or Mozilla.
