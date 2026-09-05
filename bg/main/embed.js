@@ -59,8 +59,27 @@
         if (m.startsWith("filename*=")) name = X(ba(m.substring(10)));
         else if (m.startsWith("filename=") && !name) name = X(m.substring(9));
       });
-      b.postMessage({ type: "pdf", body: f.body, length: e.get("Content-Length"), encoding: e.get("Content-Encoding") || "", filename: name, status: f.status, contentType: g }, [f.body]);
+      var ranges = e.get("Accept-Ranges") === "bytes";
+      ranges && ra(b);
+      b.postMessage({ type: "pdf", body: f.body, length: e.get("Content-Length"), encoding: e.get("Content-Encoding") || "", filename: name, status: f.status, contentType: g, ranges: ranges }, [f.body]);
     }).catch(function (f) { clearTimeout(d); b.postMessage({ type: "pdf", error: "fetch pdf: " + f.message }); });
+  }
+  // Scholar: qa()/ra() — byte-range requests from the viewer, so page 1 can
+  // render before the whole file has arrived (pdf.js asks for the xref and the
+  // first page's objects first).
+  function qa(a, b, c, d) {
+    b >= 0 && c > b && fetch(a, { headers: { Range: "bytes=" + b + "-" + (c - 1) } }).then(function (f) {
+      d.postMessage({ type: "pdfrange", body: f.body, begin: b }, [f.body]);
+    }).catch(function () { d.postMessage({ type: "pdfrange", begin: b, error: true }); });
+  }
+  function ra(a) {
+    a.addEventListener("message", function (b) {
+      if (b.data && typeof b.data === "object" && b.data.type === "fetchrange") {
+        var c = b.data.url, d = b.data.begin; b = b.data.end;
+        typeof c === "string" && typeof d === "number" && typeof b === "number" && Z(c) && qa(c, d, b, a);
+      }
+    });
+    a.start();
   }
 
   function embed() {

@@ -3,6 +3,10 @@
 All notable changes, grouped by release. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## 1.2.3
+
+- Faster first page for web PDFs. The relay now streams progressively and answers pdf.js byte-range requests from the page (Scholar's `qa()`/`ra()`), so the first page renders while the rest of the file is still downloading. Measured on a 7 MB paper over a throttled 2 MB/s link: first page at 0.7 s instead of 4.5 s. Buffered path kept for servers without range support or with compressed bodies.
+
 ## 1.2.2
 
 - Download-style PDF responses (`Content-Disposition: attachment`, or a binary type with a `.pdf` name) are no longer redirected to the viewer page, which had to re-fetch them from the extension origin and failed on publishers like ACM (`?download=true`). The navigation response is rewritten to inline `application/pdf` with a declarativeNetRequest header rule, so Chrome shows its PDF page and the viewer embeds there under the real URL; the page fetches the file with its own cookies and referrer, and the file name from the original header is kept. Verified for attachment, octet-stream `.pdf` and named-attachment responses.

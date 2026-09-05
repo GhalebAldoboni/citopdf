@@ -14,38 +14,77 @@
   window.__embedOpen = function (url, app) {
     if (!embedded || !/^https?:/i.test(url)) return false;
     app.setTitleUsingUrl(url);
-    const ch = new MessageChannel();
+    const ch = new MessageChannel(), port = ch.port1;
     const fallback = () => app.open(url);
-    let done = false;
+    let done = false, transport = null;
     const timer = setTimeout(() => { if (!done) { done = true; fallback(); } }, 35e3);
-    ch.port1.onmessage = async (e) => {
-      if (done) return;
-      done = true; clearTimeout(timer);
+    const keepFilename = (name) => {
+      // pdf.js derives the title and download name from the response headers it
+      // fetched itself; with relayed bytes it has none, so supply the page's.
+      name && app.eventBus.on("metadataloaded", () => {
+        if (app._contentDispositionFilename) return;
+        app._contentDispositionFilename = name;
+        const t = app.documentInfo && app.documentInfo.Title;
+        app.setTitle(t ? `${t} - ${name}` : name);
+      }, { once: true });
+    };
+    port.onmessage = async (e) => {
       const d = e.data;
-      if (!d || d.type !== "pdf" || !d.body) return fallback();
-      if (d.status >= 400 || /^text\/html/i.test(d.contentType || "")) return fallback();
+      if (!d || typeof d !== "object") return;
+      if (d.type === "pdfrange") {                       // answer to requestDataRange
+        if (!transport) return;
+        if (d.error || !d.body) return transport.abort();
+        try { transport.onDataRange(d.begin, new Uint8Array(await new Response(d.body).arrayBuffer())); } catch (err) {}
+        return;
+      }
+      if (d.type !== "pdf" || done) return;
+      done = true; clearTimeout(timer);
+      if (!d.body || d.status >= 400 || /^text\/html/i.test(d.contentType || "")) return fallback();
+      const total = Number(d.length) || 0;
+      const lib = window.pdfjsLib;
+      const ranged = d.ranges && !d.encoding && total > 0 && lib && lib.PDFDataRangeTransport;
       try {
-        const total = Number(d.length) || 0, chunks = []; let loaded = 0;
-        const reader = d.body.getReader();
-        for (;;) {
-          const { value, done: end } = await reader.read();
-          if (end) break;
-          chunks.push(value); loaded += value.length;
-          total && app.progress(loaded / total);
+        if (ranged) {
+          // Progressive: the full stream is fed as it arrives, and pdf.js pulls
+          // the xref and first-page objects through byte ranges right away, so
+          // page 1 renders long before the download finishes.
+          class Relay extends lib.PDFDataRangeTransport {
+            requestDataRange(begin, end) { port.postMessage({ type: "fetchrange", url, begin, end }); }
+            abort() {}
+          }
+          transport = new Relay(total, new Uint8Array(0), false);
+          keepFilename(d.filename);
+          const opening = app.open({ url, originalUrl: url }, { range: transport, length: total });
+          (async () => {
+            const reader = d.body.getReader(); let loaded = 0;
+            try {
+              for (;;) {
+                const { value, done: end } = await reader.read();
+                if (end) break;
+                loaded += value.length;
+                transport.onDataProgressiveRead(value);
+                transport.onDataProgress(loaded, total);
+              }
+            } catch (err) {}
+            transport.onDataProgressiveDone();
+          })();
+          await opening;
+        } else {
+          const chunks = []; let loaded = 0;
+          const reader = d.body.getReader();
+          for (;;) {
+            const { value, done: end } = await reader.read();
+            if (end) break;
+            chunks.push(value); loaded += value.length;
+            total && app.progress(loaded / total);
+          }
+          const bytes = new Uint8Array(loaded); let off = 0;
+          for (const c of chunks) { bytes.set(c, off); off += c.length; }
+          const opening = app.open(bytes);
+          app.url = app.baseUrl = url;           // downloads and "Copy PDF link" keep the real URL
+          keepFilename(d.filename);
+          await opening;
         }
-        const bytes = new Uint8Array(loaded); let off = 0;
-        for (const c of chunks) { bytes.set(c, off); off += c.length; }
-        const opening = app.open(bytes);
-        app.url = app.baseUrl = url;           // downloads and "Copy PDF link" keep the real URL
-        // pdf.js derives the title and download name from the response headers it
-        // fetched itself; with relayed bytes it has none, so supply the page's.
-        if (d.filename) app.eventBus.on("metadataloaded", () => {
-          if (app._contentDispositionFilename) return;
-          app._contentDispositionFilename = d.filename;
-          const t = app.documentInfo && app.documentInfo.Title;
-          app.setTitle(t ? `${t} - ${d.filename}` : d.filename);
-        }, { once: true });
-        await opening;
       } catch (err) { fallback(); }
     };
     post({ type: "fetch", url }, [ch.port2]);

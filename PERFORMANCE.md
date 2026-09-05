@@ -31,6 +31,12 @@ unless stated otherwise.
 | The citation analysis parses the whole PDF a second time. | It runs in Scholar's Web Worker with a sandboxed loader, scheduled with `requestIdleCallback` after the pages have loaded, and the loader is torn down afterwards so the second parsed copy is freed. | On a 26-page paper: 53 references and 65 citation groups found in about 4.5 s of background time, costing 303 ms of main-thread time in two tasks, never during scrolling. |
 | The Scholar reader renders every page as a bitmap posted through its sandboxed iframe, which is why it feels slow. | The viewer keeps its own direct pdf.js rendering; Scholar's code is used only for analysis and the popup. | One rendering engine. |
 
+## Loading
+
+| Problem | Fix | Effect |
+|---|---|---|
+| The page relayed the whole file to the viewer before pdf.js saw a byte, so a 7 MB paper on a 2 MB/s link showed nothing for 4.5 s. Chrome's viewer fetches byte ranges and paints page 1 almost at once. | Scholar's range relay (`qa()`/`ra()` in `bg/main/embed.js`): the viewer feeds pdf.js a progressive `PDFDataRangeTransport`, the full stream arrives in the background, and pdf.js pulls the xref and first-page objects through `Range` requests made by the page (`bg/main/embedded.js`). Falls back to buffering when the server does not accept ranges or compresses the body. | First page at 0.7 s instead of 4.5 s on the same link, 21 range requests; the rest of the file keeps streaming for scrolling and download. |
+
 ## Weak devices
 
 | Problem | Fix | Effect |
