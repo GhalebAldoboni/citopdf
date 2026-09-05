@@ -3,6 +3,11 @@
 All notable changes, grouped by release. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## 1.2.4
+
+- pdf.js's worker is created while the viewer is still loading and handed to the first document, instead of being started on open. Parse wait after open drops from about 160 ms to 20 ms; a local 7 MB paper paints its first page roughly 70 ms sooner.
+- Plugin suppression at document_start was tried and dropped: no measurable gain over Scholar's DOMContentLoaded swap.
+
 ## 1.2.3
 
 - Faster first page for web PDFs. The relay now streams progressively and answers pdf.js byte-range requests from the page (Scholar's `qa()`/`ra()`), so the first page renders while the rest of the file is still downloading. Measured on a 7 MB paper over a throttled 2 MB/s link: first page at 0.7 s instead of 4.5 s. Buffered path kept for servers without range support or with compressed bodies.

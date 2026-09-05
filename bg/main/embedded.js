@@ -8,6 +8,25 @@
 (() => {
   "use strict";
   const embedded = window.parent !== window;
+
+  // Pre-warm pdf.js's worker while the rest of the viewer is still loading, so
+  // the document does not wait for the worker script to load and compile.
+  let prewarmed = null;
+  try {
+    const lib = window.pdfjsLib;
+    if (lib && lib.PDFWorker && !window.__noPrewarm) {
+      lib.GlobalWorkerOptions.workerSrc = lib.GlobalWorkerOptions.workerSrc || "../build/pdf.worker.js";
+      prewarmed = new lib.PDFWorker({ name: "viewer-prewarm" });
+      prewarmed.promise.catch(() => { prewarmed = null; });
+    }
+  } catch (e) { prewarmed = null; }
+  const useWarmWorker = (app) => {
+    const origOpen = app.open.bind(app);
+    app.open = (file, args) => {
+      const w = prewarmed; prewarmed = null;          // one document per warm worker
+      return origOpen(file, w && !(args && args.worker) ? { ...(args || {}), worker: w } : args);
+    };
+  };
   const post = (msg, transfer) => { try { window.parent.postMessage(msg, "*", transfer || []); } catch (e) {} };
 
   // Called by viewer.js before it opens a URL. Returns true when the load is handled here.
@@ -91,7 +110,11 @@
     return true;
   };
 
-  if (!embedded) return;
+  if (!embedded) {
+    const initTop = () => { const app = window.PDFViewerApplication; app && useWarmWorker(app); };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initTop); else initTop();
+    return;
+  }
   // Title -> tab.
   const sendTitle = () => post({ type: "title", title: document.title });
   new MutationObserver(sendTitle).observe(document.querySelector("title") || document.head, { childList: true, characterData: true, subtree: true });
@@ -122,6 +145,7 @@
     // pdf.js treats a framed viewer as "embedded" and then leaves document.title
     // alone (and skips a few top-level niceties). This frame is the whole tab.
     Object.defineProperty(app, "isViewerEmbedded", { get: () => false, configurable: true });
+    useWarmWorker(app);
     (app.initializedPromise ? app.initializedPromise : Promise.resolve()).then(() => { hook(app); sendTitle(); });
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();

@@ -37,6 +37,8 @@ unless stated otherwise.
 |---|---|---|
 | The page relayed the whole file to the viewer before pdf.js saw a byte, so a 7 MB paper on a 2 MB/s link showed nothing for 4.5 s. Chrome's viewer fetches byte ranges and paints page 1 almost at once. | Scholar's range relay (`qa()`/`ra()` in `bg/main/embed.js`): the viewer feeds pdf.js a progressive `PDFDataRangeTransport`, the full stream arrives in the background, and pdf.js pulls the xref and first-page objects through `Range` requests made by the page (`bg/main/embedded.js`). Falls back to buffering when the server does not accept ranges or compresses the body. | First page at 0.7 s instead of 4.5 s on the same link, 21 range requests; the rest of the file keeps streaming for scrolling and download. |
 
+| pdf.js starts its worker only when the document opens, so every load first waits for the 1 MB worker script to load and compile. | `bg/main/embedded.js` creates the worker as soon as pdf.js is parsed, while the rest of the viewer is still loading, and hands it to the first `open()`. | Parse wait after open drops from about 160 ms to 20 ms; first page of a local 7 MB paper about 70 ms sooner (530-580 ms from frame start in Chrome for Testing). |
+
 ## Weak devices
 
 | Problem | Fix | Effect |
