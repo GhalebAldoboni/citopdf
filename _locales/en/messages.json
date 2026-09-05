@@ -1,0 +1,8 @@
+{
+  "name": {
+    "message": "Scholar PDF Viewer"
+  },
+  "description": {
+    "message": "A pdf.js viewer for Chrome with Google Scholar citation popups, native printing and smooth zoom."
+  }
+}
