@@ -1172,6 +1172,13 @@
     state.Y = new tj(viewer, i18n, a, 0);
     (viewer.ma = viewer.ka ? new Jm(viewer, i18n, 0) : null) && a.appendChild(viewer.ma.j.j);
     viewer.yc = viewer.ka ? null : new Fj(i18n, viewer.Ob, location.href, a);
+  }
+  // Privacy: Scholar's reader looks the account up on every load. Here nothing
+  // is sent to scholar.google.com until a citation popup is first opened.
+  let accountChecked = false;
+  function checkAccount() {
+    if (accountChecked) return;
+    accountChecked = true;
     Qk(viewer);
     // Not in Scholar: it learns about a sign-in from its scholar.google.com
     // content script. Here the account is re-checked when the tab regains focus.
@@ -1179,6 +1186,7 @@
   }
   function popup() {
     setupReader();
+    checkAccount();
     return state.da || (state.da = new Bp(viewer, i18n, state.R, state.Y, viewer.A, { Eb: viewer.ma, yb: viewer.yc }));
   }
   const No = function (a, b, c) {

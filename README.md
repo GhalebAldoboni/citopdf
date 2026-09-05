@@ -113,6 +113,18 @@ Every change, with its cause and measurement, is in **[PERFORMANCE.md](PERFORMAN
 
 <br>
 
+## Privacy
+
+No analytics, no beacons, no update pings. The only network traffic the extension itself makes:
+
+| When | Where | What |
+|---|---|---|
+| You open a citation popup | `scholar.google.com` | The reference text, as a Scholar search, with your Scholar cookies. The first popup also asks Scholar who is signed in so *Save* can work. |
+| You click *Cite* or *Save* | `scholar.google.com` | The paper's Scholar id, plus label changes for *Save*. |
+| You print a web PDF | the PDF's own server | A 1-byte range request to confirm it is served as a PDF. |
+
+Nothing is sent when you merely read a PDF. Scholar's usage counters are kept locally and never reported; the original viewer's Web Store rating prompt and update URL were removed.
+
 ## Under the hood
 
 | Part | Role |
