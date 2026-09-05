@@ -34,28 +34,42 @@ const BINARY_TYPES = ["application/octet-stream*", "binary/octet-stream*", "appl
 function buildRules(frames, pdfViewerEnabled) {
   const resourceTypes = frames ? ["main_frame", "sub_frame"] : ["main_frame"];
   const requestMethods = ["get"];
-  const redirect = { regexSubstitution: chrome.runtime.getURL(VIEWER) + "?file=\\0" };
   const anyHttp = "^[hH][tT][tT][pP][sS]?://.+";
+  const pdfPath = "^[hH][tT][tT][pP][sS]?://[^?#]*\\.[pP][dD][fF]([?#].*)?$";
+  const ctPdf = { header: "content-type", values: PDF_TYPES };
+  const ctBinary = { header: "content-type", values: BINARY_TYPES };
+  const cdPdfName = { header: "content-disposition", values: ["*.pdf*"] };
+  // Downloads started from the viewer carry this marker: leave them alone.
+  const allowMarker = { id: 1, priority: 2, action: { type: "allow" }, condition: { urlFilter: DOWNLOAD_MARKER, resourceTypes } };
+  if (pdfViewerEnabled) {
+    // Chrome shows PDFs itself and bg/main/embed.js hosts the viewer in that
+    // page, so the tab keeps the PDF's URL. Responses that Chrome would
+    // download instead (attachment, or a binary type with a .pdf name) are
+    // rewritten to inline application/pdf. Only the navigation response is
+    // touched; the viewer's own fetch still sees the original headers and the
+    // file name in them.
+    const inline = { header: "content-disposition", operation: "set", value: "inline" };
+    const asPdf = { header: "content-type", operation: "set", value: "application/pdf" };
+    return [
+      allowMarker,
+      { id: 2, priority: 1, action: { type: "modifyHeaders", responseHeaders: [inline] },
+        condition: { regexFilter: anyHttp, resourceTypes, requestMethods, responseHeaders: [ctPdf] } },
+      { id: 3, priority: 1, action: { type: "modifyHeaders", responseHeaders: [asPdf, inline] },
+        condition: { regexFilter: pdfPath, resourceTypes, requestMethods, responseHeaders: [ctBinary] } },
+      { id: 4, priority: 1, action: { type: "modifyHeaders", responseHeaders: [asPdf, inline] },
+        condition: { regexFilter: anyHttp, resourceTypes, requestMethods, responseHeaders: [cdPdfName] } },
+    ];
+  }
+  // Chrome is set to download PDFs instead of showing them: open the viewer page directly.
+  const redirect = { regexSubstitution: chrome.runtime.getURL(VIEWER) + "?file=\\0" };
   return [
-    // Downloads started from the viewer carry this marker: let them through.
-    { id: 1, priority: 2, action: { type: "allow" }, condition: { urlFilter: DOWNLOAD_MARKER, resourceTypes } },
-    // Served as a PDF. When Chrome shows PDFs, inline ones are left to its PDF
-    // page, where bg/main/embed.js hosts the viewer under the PDF's own URL, and
-    // attachments are caught by rule 4 (".pdf" file name). Header conditions in
-    // a rule are OR-ed, so "PDF and attachment" cannot be expressed here. If
-    // Chrome is set to download PDFs instead, every PDF response is redirected.
-    ...(pdfViewerEnabled ? [] : [
+    allowMarker,
     { id: 2, priority: 1, action: { type: "redirect", redirect },
-      condition: { regexFilter: anyHttp, resourceTypes, requestMethods,
-        responseHeaders: [{ header: "content-type", values: PDF_TYPES }] } }]),
-    // Generic binary type, but the URL path ends in .pdf.
+      condition: { regexFilter: anyHttp, resourceTypes, requestMethods, responseHeaders: [ctPdf] } },
     { id: 3, priority: 1, action: { type: "redirect", redirect },
-      condition: { regexFilter: "^[hH][tT][tT][pP][sS]?://[^?#]*\\.[pP][dD][fF]([?#].*)?$", resourceTypes, requestMethods,
-        responseHeaders: [{ header: "content-type", values: BINARY_TYPES }] } },
-    // Attachment whose file name ends in .pdf, whatever the declared type.
+      condition: { regexFilter: pdfPath, resourceTypes, requestMethods, responseHeaders: [ctBinary] } },
     { id: 4, priority: 1, action: { type: "redirect", redirect },
-      condition: { regexFilter: anyHttp, resourceTypes, requestMethods,
-        responseHeaders: [{ header: "content-disposition", values: ["*.pdf*"] }] } },
+      condition: { regexFilter: anyHttp, resourceTypes, requestMethods, responseHeaders: [cdPdfName] } },
   ];
 }
 const otvinta = () => chrome.storage.local.get({ frames: !1, pdfViewerEnabled: !0 }, e => {
