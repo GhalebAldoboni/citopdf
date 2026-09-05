@@ -54,6 +54,21 @@ Reload the extension from the same page after pulling changes.
 | Open a link in the viewer | Right-click a link, *Open with Scholar PDF Viewer* |
 | Copy a link to the current page of the PDF | Toolbar button in the viewer |
 
+## Performance
+
+The viewer is tuned so that the main thread does nothing during a gesture and renders only what you will actually look at:
+
+- **Zoom on the compositor.** A pinch is previewed with a CSS transform and committed to pdf.js once, when the gesture ends. Stock pdf.js re-rendered every visible page on every wheel tick; here a pinch runs at 60 fps with a single render.
+- **Continuous pinch.** Trackpad deltas map to a continuous factor (Scholar's formula) instead of 10% steps, with the point under your fingers held fixed.
+- **Sharp at high zoom.** The canvas cap is raised from 16 to 48 MP, so pages render at true Retina resolution to roughly 380%, and a long pinch re-sharpens mid-gesture.
+- **Idle-frame text layers.** Text layers are built one per frame after scrolling settles, removing the 100 to 300 ms stall that followed every zoom commit or page jump.
+- **No renders mid-fling.** Fast scrolling does not start renders for pages that are about to leave; the pages you stop on render first.
+- **Wider look-ahead.** Two pages ahead and one behind are pre-rendered, so page-down lands on painted pages.
+- **Background citation analysis.** Scholar's analyzer runs in a worker at idle time, about 300 ms once per document.
+- **Header-matched interception.** PDFs are caught with declarativeNetRequest rules, no runtime request listener.
+
+The full list, with causes and measurements, is in [PERFORMANCE.md](PERFORMANCE.md).
+
 ## How it works
 
 | Part | Role |
