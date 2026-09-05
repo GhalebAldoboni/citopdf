@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start"><img src="https://img.shields.io/badge/install-load%20unpacked-6f42c1?style=for-the-badge" alt="Load unpacked"></a>
+  <a href="https://github.com/GhalebAldoboni/scholar-pdf-viewer/releases/latest"><img src="https://img.shields.io/github/v/release/GhalebAldoboni/scholar-pdf-viewer?style=for-the-badge&color=6f42c1&label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/manifest-v3-4c8eda?style=for-the-badge" alt="Manifest V3">
   <img src="https://img.shields.io/badge/chrome-128%2B-34a853?style=for-the-badge" alt="Chrome 128+">
   <img src="https://img.shields.io/badge/engine-pdf.js-d14836?style=for-the-badge" alt="pdf.js">
@@ -83,6 +83,8 @@ Printing goes through Chrome's own PDF engine for vector output. Light and dark 
 <br>
 
 ## Quick start
+
+Download the zip from the [latest release](https://github.com/GhalebAldoboni/scholar-pdf-viewer/releases/latest) and unpack it, or clone:
 
 ```bash
 git clone https://github.com/GhalebAldoboni/scholar-pdf-viewer.git
