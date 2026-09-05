@@ -24,9 +24,10 @@
  */
 (() => {
   "use strict";
-  const FLING_PX_PER_S = 2500;   // faster than this: pages are just passing by
-  const SETTLE_MS = 90;          // no scroll event for this long = settled
-  const TEXT_IDLE_MS = 120;      // text layers wait this long after the last scroll
+  const LITE = !!(window.__viewerDevice && window.__viewerDevice.lite);   // device.js
+  const FLING_PX_PER_S = LITE ? 1800 : 2500;   // faster than this: pages are just passing by
+  const SETTLE_MS = 90;                         // no scroll event for this long = settled
+  const TEXT_IDLE_MS = LITE ? 200 : 120;        // text layers wait this long after the last scroll
 
   function patch(app) {
     const pv = app.pdfViewer, q = app.pdfRenderingQueue;
@@ -60,11 +61,20 @@
     };
 
     // --- text layers: queued, one per frame, when idle --------------------------
+    // Pages pre-rendered ahead of the viewport get their canvas now and their
+    // text layer only once they scroll into view; text you cannot see does not
+    // need to be measured yet.
     const queue = [];
     let flushing = false, flushTimer = 0;
+    function visibleIds() {
+      try { return new Set(pv._getVisiblePages().views.map((v) => v.id)); } catch (e) { return null; }
+    }
     function step() {
       if (!idle()) { flushing = false; armFlush(); return; }
-      const item = queue.shift();
+      const vis = visibleIds();
+      let i = vis ? queue.findIndex((it) => vis.has(it.page)) : 0;
+      if (i < 0) { flushing = false; return; }        // only off-screen pages left: wait for a scroll
+      const item = queue.splice(i, 1)[0];
       if (item) item.run();
       if (queue.length) requestAnimationFrame(step);
       else flushing = false;
@@ -82,7 +92,7 @@
       let item = null;
       b.render = (timeout = 0) => {
         if (item) return;
-        item = { run: () => { item = null; render(timeout); } };
+        item = { page: args[1] + 1, run: () => { item = null; render(timeout); } };
         queue.push(item);
         armFlush();
       };

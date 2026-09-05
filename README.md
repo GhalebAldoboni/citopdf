@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="assets/banner.svg" alt="Scholar PDF Viewer" width="100%">
+  <img src="assets/banner.svg" alt="Scholar PDF Viewer Lite" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/GhalebAldoboni/scholar-pdf-viewer/releases/latest"><img src="https://img.shields.io/github/v/release/GhalebAldoboni/scholar-pdf-viewer?style=for-the-badge&color=6f42c1&label=release" alt="Latest release"></a>
+  <a href="https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/latest"><img src="https://img.shields.io/github/v/release/GhalebAldoboni/scholar-pdf-viewer-lite?style=for-the-badge&color=6f42c1&label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/manifest-v3-4c8eda?style=for-the-badge" alt="Manifest V3">
   <img src="https://img.shields.io/badge/chrome-128%2B-34a853?style=for-the-badge" alt="Chrome 128+">
   <img src="https://img.shields.io/badge/engine-pdf.js-d14836?style=for-the-badge" alt="pdf.js">
@@ -12,13 +12,13 @@
 
 <br>
 
-**Scholar PDF Viewer** replaces Chrome's built-in PDF viewer with a port of pdf.js made for reading papers. Click any citation in the text and the referenced paper opens right there, looked up on Google Scholar: abstract snippet, *Cited by*, *Cite*, *Save to library*. Underneath, rendering is scheduled around what you are doing, so it stays quick and light on documents that make Chrome's viewer and the Scholar reader stutter.
+**Scholar PDF Viewer Lite** replaces Chrome's built-in PDF viewer with a port of pdf.js made for reading papers. Click any citation in the text and the referenced paper opens right there, looked up on Google Scholar: abstract snippet, *Cited by*, *Cite*, *Save to library*. Underneath, rendering is scheduled around what you are doing, so it stays quick and light on documents that make Chrome's viewer and the Scholar reader stutter, and it adapts itself to low-memory, few-core machines.
 
 <br>
 
 ## Why not the others?
 
-| | Chrome PDF viewer | Google Scholar PDF Reader | **Scholar PDF Viewer** |
+| | Chrome PDF viewer | Google Scholar PDF Reader | **Scholar PDF Viewer Lite** |
 |---|:---:|:---:|:---:|
 | In-text citation popups | – | ✓ | ✓ |
 | Cite / Save to Scholar library | – | ✓ | ✓ |
@@ -26,6 +26,9 @@
 | 60 fps pinch zoom, one render per gesture | – | – | ✓ |
 | Sharp at 300%+ on Retina | – | – | ✓ |
 | Smooth on heavy scanned PDFs | – | – | ✓ |
+| Adapts to weak devices (memory, cores) | – | – | ✓ |
+| Off-screen pages cost nothing to scroll past | – | – | ✓ |
+| Text layers only for pages in view | – | – | ✓ |
 | Vector printing | ✓ | ✓ | ✓ |
 | Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | ✓ |
 | Dark theme with readable popup | – | ✓ | ✓ |
@@ -59,8 +62,8 @@ A pinch is previewed on the compositor and committed to pdf.js once, when your f
 </td>
 <td valign="top">
 
-### 🏋️ Built for heavy PDFs
-No renders start while you fling. Text layers are built in idle frames after the canvas is up. Two pages ahead are pre-rendered so page-down never lands on a blank page.
+### 🏋️ Light on weak devices
+No renders start while you fling. Text layers are built in idle frames, only for pages in view. Off-screen pages skip layout and paint. On a 4 GB or dual-core machine the viewer keeps bitmaps small and pre-renders less, automatically.
 
 </td>
 </tr>
@@ -84,10 +87,10 @@ Printing goes through Chrome's own PDF engine for vector output. Light and dark 
 
 ## Quick start
 
-Download the zip from the [latest release](https://github.com/GhalebAldoboni/scholar-pdf-viewer/releases/latest) and unpack it, or clone:
+Download the zip from the [latest release](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/latest) and unpack it, or clone:
 
 ```bash
-git clone https://github.com/GhalebAldoboni/scholar-pdf-viewer.git
+git clone https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite.git
 ```
 
 1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the folder.
@@ -107,6 +110,9 @@ The rule is simple: the main thread does nothing during a gesture, and only page
 - **Sharp at high zoom**: canvas cap raised 16 → 48 MP, true Retina resolution to roughly 380%.
 - **Idle-frame text layers**: built one per frame after scrolling settles, removing a 100 to 300 ms stall after every zoom or jump.
 - **No renders mid-fling**: above 2500 px/s nothing starts; the page you stop on renders first.
+- **Off-screen pages are free**: `content-visibility: auto` on pages outside the viewport, so the ten cached pages with their thousands of text spans cost no layout or paint.
+- **Text layers only where you look**: pre-rendered pages get their canvas now and their text layer when they scroll into view.
+- **Device profile**: on machines with 4 GB or less, or two cores, the canvas cap stays at 16 MP (192 MB less bitmap per page at high zoom), look-ahead drops to one page, and text layers wait a little longer. Rendering resolution is unchanged up to about 220% on Retina.
 - **Background citation analysis**: Scholar's analyzer worker at idle time, about 300 ms once per document.
 
 Every change, with its cause and measurement, is in **[PERFORMANCE.md](PERFORMANCE.md)**.
@@ -133,7 +139,8 @@ Nothing is sent when you merely read a PDF. Scholar's usage counters are kept lo
 | `bg/helper/` | pdf.js 2.7 viewer and engine. |
 | `bg/main/scholar-citations.js` | Citation analysis and the reference popup, transplanted from the Google Scholar PDF Reader. Scholar's analyzer worker and sandboxed loader run unchanged; the UI keeps Scholar's identifiers so it diffs against the original bundle. |
 | `bg/main/smooth.js` | Compositor zoom, continuous pinch, look-ahead rendering. |
-| `bg/main/perf.js` | Render scheduling: idle-frame text layers, fling gating. |
+| `bg/main/device.js` | Device profile: memory, cores, pixel ratio; picks the lite settings. |
+| `bg/main/perf.js`, `perf.css` | Render scheduling: idle-frame, visible-first text layers, fling gating, off-screen page containment. |
 | `bg/main/nativeprint.js` | Vector printing through Chrome's PDF engine. |
 | `bg/main/printscript.js` | Content script inside PDF frames: print handshake, embedded-PDF detection. |
 | `bg/main/replace.js` | Theme wiring, toolbar additions, URL normalisation. |

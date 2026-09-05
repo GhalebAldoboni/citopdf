@@ -9,7 +9,8 @@
  */
 (() => {
   "use strict";
-  const AHEAD_EXTRA = 1;   // pages beyond the one pdf.js already pre-renders
+  const LITE = !!(window.__viewerDevice && window.__viewerDevice.lite);   // device.js
+  const AHEAD_EXTRA = LITE ? 0 : 1;   // pages beyond the one pdf.js already pre-renders
   const BEHIND = 1;
 
   function patch(app) {
@@ -60,7 +61,9 @@
   // pdf.js caps page canvases at 16 MP and CSS-upscales beyond that, which is
   // blurry on HiDPI screens above ~220%. 48 MP keeps a Letter page sharp up to
   // ~380% at 2x DPR; beyond that pdf.js falls back to upscaling as before.
-  const MAX_CANVAS_PIXELS = 48 * 1024 * 1024;
+  // On lite devices (device.js) the 16 MP default stays: a 48 MP canvas is
+  // 192 MB of bitmap, which a 4 GB machine cannot afford per cached page.
+  const MAX_CANVAS_PIXELS = (LITE ? 16 : 48) * 1024 * 1024;
   document.addEventListener("webviewerloaded", () => {
     try { window.PDFViewerApplicationOptions.set("maxCanvasPixels", MAX_CANVAS_PIXELS); } catch (e) {}
   });

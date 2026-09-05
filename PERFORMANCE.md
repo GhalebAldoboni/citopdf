@@ -30,6 +30,15 @@ unless stated otherwise.
 | During a fling, every scroll frame starts renders for pages that are gone a few frames later. pdf.js pauses them once they lose priority, but the canvas allocation and worker kick-off are wasted and compete with scrolling. | Above 2500 px/s no new renders start. One update runs as soon as the scroll settles (`perf.js`). | The pages you stop on render immediately instead of queuing behind pages that flew past. |
 | The citation analysis parses the whole PDF a second time. | It runs in Scholar's Web Worker with a sandboxed loader, scheduled with `requestIdleCallback` after the pages have loaded, and the loader is torn down afterwards. | About 300 ms of main-thread time once per document, never during scrolling. |
 
+## Weak devices
+
+| Problem | Fix | Effect |
+|---|---|---|
+| pdf.js keeps up to ten pages alive around the viewport, each with a canvas and a text layer of hundreds to thousands of absolutely positioned spans. Every scroll frame lays out and paints all of them. | `content-visibility: auto` on pages outside the viewport (`bg/main/perf.css`), except a page hosting an open citation popup. | Scrolling costs only the pages in view; off-screen text layers are skipped by the browser. |
+| Pages pre-rendered ahead of the viewport also got their text layer measured immediately. | Text layers are built visible-first: a pre-rendered page gets its canvas now and its text layer when it scrolls into view (`perf.js`). | Less main-thread work per scroll on text-dense documents. |
+| A 48 MP canvas is 192 MB of bitmap. With several cached pages at high zoom a 4 GB machine swaps or the tab dies. | `device.js` marks machines with 4 GB or less, or two cores, as lite. On them the canvas cap stays at pdf.js's 16 MP, look-ahead drops to one page, fling gating starts at 1800 px/s and text layers wait 200 ms. | Same resolution up to about 220% on Retina (440% at 1x); far less memory beyond that. |
+| Text layer insertions could trigger layout outside the page. | `contain: layout` on the text layer. | Layout stays local to the page. |
+
 ## Printing
 
 | Problem | Fix (`bg/main/nativeprint.js`) | Effect |

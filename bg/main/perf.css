@@ -1,0 +1,10 @@
+/*
+ * Off-screen pages: pdf.js keeps up to ten pages alive around the viewport,
+ * each with a canvas and a text layer of hundreds or thousands of positioned
+ * spans. content-visibility lets the browser skip layout and paint for the
+ * ones you cannot see, so scrolling costs only the pages in view. A page that
+ * hosts an open citation popup is excluded so the popup can overflow it.
+ */
+.pdfViewer .page:not(:has(> .gsr-dialog.gsr-vis)) { content-visibility: auto; }
+/* Text layer changes never affect layout outside the page. */
+.textLayer { contain: layout; }

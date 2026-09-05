@@ -18,13 +18,13 @@
   <circle cx="120" cy="400" r="180" fill="#c58af9" opacity="0.05"/>
 
   <!-- title block -->
-  <text x="72" y="150" font-size="56" font-weight="700" fill="#f1f3f4" letter-spacing="-1">Scholar PDF Viewer</text>
-  <text x="74" y="196" font-size="22" fill="#9aa0a6">A pdf.js port with in-text citations, built for speed.</text>
+  <text x="72" y="150" font-size="56" font-weight="700" fill="#f1f3f4" letter-spacing="-1">Scholar PDF Viewer <tspan fill="url(#accent)">Lite</tspan></text>
+  <text x="74" y="196" font-size="22" fill="#9aa0a6">A pdf.js port with in-text citations. Fast on any machine.</text>
   <rect x="74" y="222" width="120" height="4" rx="2" fill="url(#accent)"/>
   <g font-size="15" fill="#bdc1c6">
     <text x="74" y="270">▸  Click a citation, read the paper in place</text>
     <text x="74" y="300">▸  60 fps pinch zoom, one render per gesture</text>
-    <text x="74" y="330">▸  Heavy scanned PDFs scroll without stutter</text>
+    <text x="74" y="330">▸  Smooth on weak laptops and heavy scans alike</text>
     <text x="74" y="360">▸  Cite, Save to library, vector printing</text>
   </g>
 
