@@ -3,6 +3,17 @@
 All notable changes, grouped by release. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## 1.2.0 · Real URLs
+
+- The address bar shows the PDF's own URL, as with Chrome's viewer. Transplanted from the Scholar reader's `contentscript-compiled.js`: `bg/main/embed.js` runs on the PDF page Chrome creates for the response and swaps its body for a full-window frame holding the viewer. Back, reload, bookmarks and "copy address" keep the PDF URL.
+- The page fetches the PDF on the viewer's behalf over a MessagePort (Scholar's `na()` relay), so the request carries the page's cookies and referrer; publisher paywalls and one-time links work without any header rewriting. The viewer falls back to fetching itself if the relay fails.
+- Tab title follows the document (pdf.js suppresses it in frames; overridden). The tab URL hash follows the current page (`#page=N`, replaceState) and Back/Forward or a hash edit moves the viewer.
+- Printing hands the bytes to the page, which prints them through Chrome's PDF engine (Scholar's `printBuffer` path); `file://` pages use the `printscript.js` handshake.
+- `file://` PDFs and publisher-embedded frames (700x350 or larger, or filling the window, Scholar's rule) go through the same path; "Support embedded PDFs" opens smaller frames too.
+- `worker.js` no longer redirects inline PDFs; attachments Chrome would download are still redirected to the viewer page, and every PDF is redirected if Chrome is set to download PDFs.
+- `#gsr=0` or `#toolbar=0` leaves Chrome's viewer alone.
+- Verified in Chrome for Testing: top-level, `file://` and framed PDFs keep their URL and render; the relay sends cookies; `#page=` syncs both ways; attachments redirect; the print frame is created.
+
 ## 1.1.0 · Lite
 
 ### Performance

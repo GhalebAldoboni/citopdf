@@ -30,6 +30,7 @@
 | Off-screen pages cost nothing to scroll past | – | – | – | ✓ |
 | Text layers only for pages in view | – | – | – | ✓ |
 | Vector printing | ✓ | ✓ | – (150 dpi raster) | ✓ |
+| Keeps the PDF's real URL in the address bar | ✓ | ✓ | – | ✓ |
 | Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | – | ✓ |
 | Dark theme with readable popup | – | ✓ | – | ✓ |
 | Open source | – | – | ✓ | ✓ |
@@ -70,8 +71,8 @@ No renders start while you fling. Text layers are built in idle frames, only for
 <tr>
 <td valign="top">
 
-### 🌐 Opens everywhere
-Direct links, download-style responses, `file://` files, and publisher pages that wrap the PDF in a frame (IEEE Xplore, Wiley, ProQuest, EBSCO). Interception is header-matched with declarativeNetRequest, no request listener.
+### 🌐 Opens everywhere, keeps the URL
+The address bar shows the PDF's own URL, exactly as with Chrome's viewer: the viewer lives inside the PDF page, the tab hash follows the page you are on, and Back, reload and bookmarks all keep working. Direct links, `file://` files, download-style responses, and publisher pages that wrap the PDF in a frame (IEEE Xplore, Wiley, ProQuest, EBSCO) all open here. Add `#gsr=0` to a URL to see Chrome's viewer instead.
 
 </td>
 <td valign="top">
@@ -125,6 +126,7 @@ No analytics, no beacons, no update pings. The only network traffic the extensio
 
 | When | Where | What |
 |---|---|---|
+| You open a PDF | the PDF's own server | The PDF page fetches the file for the viewer, with the same cookies and referrer the page itself would send. Nothing goes anywhere else. |
 | You open a citation popup | `scholar.google.com` | The reference text, as a Scholar search, with your Scholar cookies. The first popup also asks Scholar who is signed in so *Save* can work. |
 | You click *Cite* or *Save* | `scholar.google.com` | The paper's Scholar id, plus label changes for *Save*. |
 | You print a web PDF | the PDF's own server | A 1-byte range request to confirm it is served as a PDF. |
@@ -135,7 +137,8 @@ Nothing is sent when you merely read a PDF. Scholar's usage counters are kept lo
 
 | Part | Role |
 |---|---|
-| `worker.js` | Service worker: header-matched PDF interception, `file://` PDFs, embedded publisher frames, context menus. |
+| `bg/main/embed.js`, `embedded.js` | Content script on Chrome's PDF page that hosts the viewer in a full-window frame under the PDF's own URL, relays the fetch, syncs title and `#page=` with the tab, and prints through the page (Scholar's `contentscript` mechanism). |
+| `worker.js` | Service worker: redirects PDF attachments Chrome would download, context menus, options. |
 | `bg/helper/` | pdf.js 2.7 viewer and engine. |
 | `bg/main/scholar-citations.js` | Citation analysis and the reference popup, transplanted from the Google Scholar PDF Reader. Scholar's analyzer worker and sandboxed loader run unchanged; the UI keeps Scholar's identifiers so it diffs against the original bundle. |
 | `bg/main/smooth.js` | Compositor zoom, continuous pinch, look-ahead rendering. |

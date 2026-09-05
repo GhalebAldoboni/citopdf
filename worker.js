@@ -31,7 +31,7 @@ const PDF_TYPES = ["application/pdf*", "application/x-pdf*", "application/acroba
 const BINARY_TYPES = ["application/octet-stream*", "binary/octet-stream*", "application/x-octet-stream*",
   "application/force-download*", "application/x-force-download*", "application/x-download*", "application/download*",
   "application/unknown*", "application/binary*", "application/x-unknown*"];
-function buildRules(frames) {
+function buildRules(frames, pdfViewerEnabled) {
   const resourceTypes = frames ? ["main_frame", "sub_frame"] : ["main_frame"];
   const requestMethods = ["get"];
   const redirect = { regexSubstitution: chrome.runtime.getURL(VIEWER) + "?file=\\0" };
@@ -39,10 +39,15 @@ function buildRules(frames) {
   return [
     // Downloads started from the viewer carry this marker: let them through.
     { id: 1, priority: 2, action: { type: "allow" }, condition: { urlFilter: DOWNLOAD_MARKER, resourceTypes } },
-    // Served as a PDF (inline or attachment).
+    // Served as a PDF. When Chrome shows PDFs, inline ones are left to its PDF
+    // page, where bg/main/embed.js hosts the viewer under the PDF's own URL, and
+    // attachments are caught by rule 4 (".pdf" file name). Header conditions in
+    // a rule are OR-ed, so "PDF and attachment" cannot be expressed here. If
+    // Chrome is set to download PDFs instead, every PDF response is redirected.
+    ...(pdfViewerEnabled ? [] : [
     { id: 2, priority: 1, action: { type: "redirect", redirect },
       condition: { regexFilter: anyHttp, resourceTypes, requestMethods,
-        responseHeaders: [{ header: "content-type", values: PDF_TYPES }] } },
+        responseHeaders: [{ header: "content-type", values: PDF_TYPES }] } }]),
     // Generic binary type, but the URL path ends in .pdf.
     { id: 3, priority: 1, action: { type: "redirect", redirect },
       condition: { regexFilter: "^[hH][tT][tT][pP][sS]?://[^?#]*\\.[pP][dD][fF]([?#].*)?$", resourceTypes, requestMethods,
@@ -53,46 +58,15 @@ function buildRules(frames) {
         responseHeaders: [{ header: "content-disposition", values: ["*.pdf*"] }] } },
   ];
 }
-const otvinta = () => chrome.storage.local.get({ frames: !1 }, e => {
-  chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: RULE_IDS, addRules: buildRules(e.frames) })
+const otvinta = () => chrome.storage.local.get({ frames: !1, pdfViewerEnabled: !0 }, e => {
+  chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: RULE_IDS, addRules: buildRules(e.frames, e.pdfViewerEnabled) })
     .catch(err => console.error("PDF rules:", err));
 });
 otvinta();
-chrome.storage.onChanged.addListener(e => { e.frames && otvinta(); });
+chrome.storage.onChanged.addListener(e => { (e.frames || e.pdfViewerEnabled) && otvinta(); });
 
-// file:// PDFs (needs "Allow access to file URLs" in chrome://extensions).
-// The listener is registered synchronously at the top level: a listener added
-// inside an async callback is not known to Chrome when the service worker is
-// asleep, so opening a downloaded PDF would not wake it and nothing happened.
-let fileAccess = null;
-const refreshFileAccess = () => new Promise(r => {
-  if (!chrome.extension || !chrome.extension.isAllowedFileSchemeAccess) return r(fileAccess = true);
-  chrome.extension.isAllowedFileSchemeAccess(v => r(fileAccess = !!v));
-});
-refreshFileAccess();
-chrome.webNavigation.onBeforeNavigate.addListener(async ({ url: e, tabId: t, frameId: o }) => {
-  if (0 !== o || e.includes(DOWNLOAD_MARKER)) return;
-  if (!(await refreshFileAccess())) return;
-  chrome.tabs.update(t, { url: stroy(e) });
-}, { url: [{ urlPrefix: "file://", pathSuffix: ".pdf" }, { urlPrefix: "file://", pathSuffix: ".PDF" }] });
-
-// --- Embedded PDFs reported by bg/main/printscript.js (Scholar: Ec + referer rule) ---
-// The viewer fetches the PDF from the extension origin, so publishers that check
-// the Referer (IEEE, Wiley, ...) get the embedding page's URL via a session rule.
-let refererRuleId = 5000;
-chrome.runtime.onMessage.addListener((msg, sender) => {
-  if (!msg || msg.type !== "open-embedded-pdf" || !sender.tab || sender.frameId !== 0) return;
-  const url = String(msg.url), referer = String(msg.referer || "");
-  if (!/^https?:/i.test(url)) return;
-  const id = refererRuleId++;
-  const escaped = url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").slice(0, 1900);
-  const rule = { id, priority: 1, action: { type: "modifyHeaders", requestHeaders: [{ header: "referer", operation: "set", value: referer }] },
-    condition: { regexFilter: "^" + escaped, resourceTypes: ["xmlhttprequest"] } };
-  const open = () => chrome.tabs.update(sender.tab.id, { url: stroy(url) });
-  if (!/^https?:/i.test(referer)) return open();
-  chrome.declarativeNetRequest.updateSessionRules({ addRules: [rule] }).then(open, (e) => { console.warn("referer rule:", e); open(); });
-  setTimeout(() => chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [id] }).catch(() => {}), 6e5);
-});
+// file:// PDFs are handled like web PDFs: Chrome shows its PDF page and
+// bg/main/embed.js hosts the viewer in it (needs "Allow access to file URLs").
 
 // --- Context menus (recreated on every service-worker start) ---
 const OPTION_DEFAULTS = { theme: "dark-1", enableScripting: !1, disablePageLabels: !1, enablePermissions: !1, enablePrintAutoRotate: !1, enableWebGL: !1, historyUpdateUrl: !0, ignoreDestinationZoom: !1, pdfBugEnabled: !1, renderInteractiveForms: !0, useOnlyCssZoom: !1, disableAutoFetch: !1, disableFontFace: !1, disableRange: !1, disableStream: !1 };

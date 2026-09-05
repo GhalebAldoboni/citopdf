@@ -87,6 +87,16 @@
       fallbackPrint();
       return;
     }
+    // Embedded in the PDF's own page (bg/main/embed.js): hand the bytes to the
+    // page, which prints them through Chrome's PDF engine (Scholar: printBuffer).
+    if (window.parent !== window && typeof window.__embedPrint === "function") {
+      if (printing) return;
+      printing = true;
+      try { await window.__embedPrint(doc); console.log("nativeprint: printing through the PDF page"); }
+      catch (e) { console.warn("nativeprint: falling back to pdf.js printing: " + (e && e.message)); fallbackPrint(); }
+      finally { printing = false; }
+      return;
+    }
     if (printing) return;
     printing = true;
     try {
@@ -97,6 +107,7 @@
       if (await framesOptionEnabled()) src.searchParams.set("pdfjs.action", "download");
 
       frame = document.createElement("iframe");           // Scholar: d
+      frame.name = "gsr-native-print";                     // embed.js leaves this frame to Chrome's viewer
       frame.setAttribute("aria-hidden", "true");
       frame.tabIndex = -1;
       frame.style.position = "absolute";
