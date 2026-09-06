@@ -3,7 +3,7 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
-## 1.3.1 · AMOLED black
+## [1.3.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.1) · AMOLED black · 2026-09-06
 
 - Third state for the page-mode button: day → night → AMOLED black (eclipse icon). AMOLED sends paper to pure black and text to pure white with a black toolbar, sidebar and background, while figures, greys and colours keep night mode's exact tones. That split is done with an SVG tone curve (`feComponentTransfer`) instead of `invert(1)`, since a linear inversion would shift every mid-tone. Verified per colour in Chrome for Testing: mid-tones identical to night mode, white→0, black→255.
 
