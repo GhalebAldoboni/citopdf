@@ -29,12 +29,16 @@
   };
   const post = (msg, transfer) => { try { window.parent.postMessage(msg, "*", transfer || []); } catch (e) {} };
 
-  // Size classes. Above BIG the file is never downloaded whole: pdf.js pulls
-  // only the byte ranges of the pages you look at (disableAutoFetch), in 1 MB
-  // chunks, so a 1 GB scan opens as fast as a 1 MB paper.
+  // Size classes. Pages you look at are fetched by range first, so a 1 GB scan
+  // opens as fast as a 1 MB paper; pdf.js then keeps pulling the remaining
+  // chunks in the background (auto-fetch, one chunk at a time, page requests
+  // first) until the whole file is local. Chunks grow with the file so a 1 GB
+  // download is ~1000 requests rather than 16000.
   const BIG = 48 * 1024 * 1024, LOCAL_RANGED_MIN = 4 * 1024 * 1024;
   const chunkFor = (total) => (total > BIG ? 1024 * 1024 : total > 8 * 1024 * 1024 ? 256 * 1024 : 65536);
-  const rangeArgs = (transport, total) => ({ range: transport, length: total, disableAutoFetch: total > BIG, rangeChunkSize: chunkFor(total) });
+  // disableStream: pdf.js switches auto-fetch off when it believes the full
+  // stream will deliver the rest; here there is no full stream, only ranges.
+  const rangeArgs = (transport, total) => ({ range: transport, length: total, disableAutoFetch: false, disableStream: true, rangeChunkSize: chunkFor(total) });
   const loadError = (app, message) => { try { app.l10n.get("loading_error", null, "An error occurred while loading the PDF.").then((m) => app.error(m, { message })); } catch (e) {} };
 
   // pdf.js derives the title and download name from the response headers it
@@ -117,10 +121,8 @@
       try {
         if (ranged) {
           // The page answered the first megabyte with 206: read it as initial
-          // data and let pdf.js pull everything else by range. Below BIG pdf.js
-          // keeps fetching the remaining chunks in the background (so download
-          // and citation analysis have the whole file); above BIG it fetches
-          // only the pages you look at.
+          // data and let pdf.js pull everything else by range, pages in view
+          // first, the rest in the background until the file is complete.
           window.__pdfByteLength = total;
           const head = new Uint8Array(await new Response(d.body).arrayBuffer());
           class Relay extends lib.PDFDataRangeTransport {

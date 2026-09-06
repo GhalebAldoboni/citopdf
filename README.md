@@ -27,7 +27,7 @@
 | 60 fps pinch zoom, one render per gesture | – | – | – | ✓ |
 | Sharp at 300%+ on Retina | – | – | – | ✓ |
 | Smooth on heavy scanned PDFs | – | – | – | ✓ |
-| Opens a 1 GB PDF instantly, pages fetched on demand | ✓ | – | – | ✓ |
+| Opens a 1 GB PDF instantly, pages first, rest in the background | ✓ | – | – | ✓ |
 | Adapts to weak devices (memory, cores) | – | – | – | ✓ |
 | Off-screen pages cost nothing to scroll past | – | – | – | ✓ |
 | Text layers only for pages in view | – | – | – | ✓ |
@@ -109,7 +109,7 @@ Open any PDF link. Citations turn blue a few seconds after the document loads.
 
 The rule is simple: the main thread does nothing during a gesture, and only pages you will actually look at get rendered.
 
-- **Huge files open instantly**: the first request is a 1 MB range, and a file above 48 MB is never downloaded whole; pdf.js pulls only the pages you look at, in 1 MB chunks. A 200 MB PDF shows page 1 in 0.34 s over HTTP with 4.75 MB transferred, and in 0.22 s from disk, where local files are read by range after a 40-probe size search.
+- **Huge files open instantly**: the first request is a 1 MB range, the pages you look at are fetched by range first, and the rest of the file keeps downloading in the background, one chunk at a time, until it is complete. A 200 MB PDF shows page 1 in 0.35 s over HTTP and 0.28 s from disk, and is fully local about six seconds later; local files are read by range after a 40-probe size search.
 - **First page before the download ends**: for ordinary papers the rest keeps streaming by range in the background; a 7 MB paper shows page 1 in 0.55 s on a 2 MB/s link instead of 4.5 s.
 - **Zoom on the compositor**: CSS transform preview, one pdf.js render per gesture, 61 fps measured on a figure-heavy paper.
 - **Continuous pinch**: trackpad deltas map to `exp(-Δy/100)` (Scholar's formula) instead of 10% steps; the point under your fingers stays put.
