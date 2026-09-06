@@ -3,7 +3,7 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
-## 1.3.0 · Night mode
+## [1.3.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.0) · Night mode · 2026-09-06
 
 - Night/day toggle for the rendered pages: a sun/moon button beside *Copy PDF Link*, showing the current state, plus Shift+N. State persists in `chrome.storage.local` and follows across tabs. The toggle, persistence and the three tint levels are DarkPDF's ([ArshSB/DarkPDF](https://github.com/ArshSB/DarkPDF)); the inversion is applied as a per-canvas filter instead of DarkPDF's full-viewport blend overlay so scrolling and pinch keep their frame rate and the toolbar, citation overlays and printing stay untouched. Verified: toggle, persistence, shortcut and frame times in Chrome for Testing.
 

@@ -142,6 +142,7 @@ Full history in **[CHANGELOG.md](CHANGELOG.md)**; every entry links to a release
 
 | Version | Date | Headline |
 |---|---|---|
+| [1.3.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.0) | 2026-09-06 | Night/day toggle for the rendered pages beside Copy PDF Link, with Shift+N; DarkPDF's logic as a per-canvas filter. |
 | [1.2.4](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.4) | 2026-09-05 | pdf.js's worker is created while the viewer is still loading and handed to the first document, instead of being started on open. Parse wait… |
 | [1.2.3](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.3) | 2026-09-05 | Faster first page for web PDFs. The relay now streams progressively and answers pdf.js byte-range requests from the page (Scholar's… |
 | [1.2.2](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.2) | 2026-09-05 | Download-style PDF responses (`Content-Disposition: attachment`, or a binary type with a `.pdf` name) are no longer redirected to the… |
