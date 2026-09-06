@@ -1380,7 +1380,13 @@
     reset();
     state.doc = doc;
     let bytes;
-    try { bytes = await doc.getData(); } catch (e) { return; }
+    try {
+      // Ranged loads (relay or file://) keep downloading after the pages are
+      // in; wait for the whole file, then take the bytes.
+      if (doc.getDownloadInfo) await doc.getDownloadInfo();
+      if (state.doc !== doc) return;
+      bytes = await doc.getData();
+    } catch (e) { console.warn("scholar-citations: could not read the document bytes", e && e.message); return; }
     if (state.doc !== doc) return;
     let segments;
     try { segments = await segmentDocument(doc); } catch (e) { segments = [{ start: 0, end: doc.numPages }]; }
@@ -1404,7 +1410,9 @@
   function hook(app) {
     setupReader();
     const bus = app.eventBus;
-    bus.on("documentloaded", () => { reset(); });
+    // With ranged loads pagesloaded can precede documentloaded; only reset
+    // when a different document replaced the one being analysed.
+    bus.on("documentloaded", () => { if (state.doc && state.doc !== app.pdfDocument) reset(); });
     bus.on("pagesloaded", () => {
       const run = () => analyze(app);
       window.requestIdleCallback ? requestIdleCallback(run, { timeout: 4000 }) : setTimeout(run, 1000);

@@ -104,10 +104,43 @@
     };
   }
 
+  // Background memory: the file itself stays in memory while the tab is open,
+  // so reading never waits on the network again. After the tab has been hidden
+  // for five minutes, every rendered page except the current one is released
+  // (canvas, text layer, worker-side font and image caches); coming back
+  // re-renders the pages in view on demand.
+  const IDLE_UNLOAD_MS = 5 * 60 * 1000;
+  function idleUnloader(app) {
+    let timer = 0, unloaded = false;
+    // While unloaded, the rendering queue is held so hidden pages stay released.
+    const q = app.pdfRenderingQueue, rhp = q.renderHighestPriority.bind(q);
+    q.renderHighestPriority = function (a) { if (!unloaded) return rhp(a); };
+    const unload = () => {
+      timer = 0;
+      const v = app.pdfViewer;
+      if (!app.pdfDocument || !v) return;
+      const cur = v.currentPageNumber;
+      let n = 0;
+      for (let i = 0; i < v.pagesCount; i++) {
+        const pv = v.getPageView(i);
+        if (!pv || i + 1 === cur) continue;
+        if (pv.renderingState !== 0) { pv.reset(); n++; }
+      }
+      app.pdfThumbnailViewer && app.pdfThumbnailViewer.cleanup();
+      app.pdfDocument.cleanup().catch(() => {});
+      unloaded = true;
+      console.log("perf: tab idle, released " + n + " rendered pages (kept page " + cur + ")");
+    };
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) { if (!timer) timer = setTimeout(unload, window.__idleUnloadMs || IDLE_UNLOAD_MS); }
+      else { if (timer) { clearTimeout(timer); timer = 0; } if (unloaded) { unloaded = false; app.pdfViewer.update(); } }
+    });
+  }
+
   function init() {
     const app = window.PDFViewerApplication;
     if (!app) return;
-    const go = () => patch(app);
+    const go = () => { patch(app); idleUnloader(app); };
     if (app.initializedPromise) app.initializedPromise.then(go);
     else { const wait = () => (app.pdfRenderingQueue && app.pdfViewer ? go() : setTimeout(wait, 50)); wait(); }
   }

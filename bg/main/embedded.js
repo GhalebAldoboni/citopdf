@@ -149,7 +149,7 @@
           keepFilename(app, d.filename);
           await opening;
         }
-      } catch (err) { fallback(); }
+      } catch (err) { console.warn("embedded: relay open failed, falling back", err && (err.message || err)); fallback(); }
     };
     post({ type: "fetch", url }, [ch.port2]);
     return true;

@@ -3,6 +3,11 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## [1.5.2](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.2) · Citations on ranged loads, idle memory · 2026-09-06
+
+- Citation popups on papers opened from publisher URLs and from disk. Two bugs hid them on the ranged loading path used for files above 1 MB (ACM, IEEE, local): `documentloaded` fires after `pagesloaded` there, so the analyzer's reset wiped the analysis it had just started; and the analyzer read the bytes before the background download was complete. The reset now only fires for a different document, and analysis waits for the download to finish. Verified with a 39-page, 276-reference ACM paper over ranged HTTP (popups at 10 s) and from disk, and with the arXiv paper on the buffered path.
+- Memory while reading, memory when away: the whole file stays in memory while the tab is open, so nothing is fetched twice. After the tab has been hidden for five minutes, every rendered page except the current one is released, along with thumbnails and pdf.js's worker-side font and image caches, and rendering stays paused until the tab is shown again, when the pages in view re-render on demand. Measured on the ACM paper: 7 rendered pages → 1 while hidden, JS heap 90 MB → 26 MB.
+
 ## [1.5.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.1) · 2026-09-06
 
 - No more page spinners while zooming, rotating or resizing. pdf.js keeps the previous canvas on screen as a zoom layer during the re-render, so the spinner only flickered on top of visible content; it is now shown only on pages that have nothing rendered yet (`bg/main/perf.css`). Verified: zero visible spinners on rendered pages across three zoom steps in Chrome for Testing.
