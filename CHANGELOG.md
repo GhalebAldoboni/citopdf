@@ -3,6 +3,10 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## [1.5.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.1) · 2026-09-06
+
+- No more page spinners while zooming, rotating or resizing. pdf.js keeps the previous canvas on screen as a zoom layer during the re-render, so the spinner only flickered on top of visible content; it is now shown only on pages that have nothing rendered yet (`bg/main/perf.css`). Verified: zero visible spinners on rendered pages across three zoom steps in Chrome for Testing.
+
 ## [1.5.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.0) · Real worker, per-paper citations · 2026-09-06
 
 - pdf.js now runs in its real Web Worker. A theme script deleted `URL.prototype.origin`, which made pdf.js's same-origin check fail and fall back to parsing on the main thread; the property is restored and the viewer's origin check accepts the extension origin. First page of a local 7 MB paper: 540 ms → 410 ms, and parsing no longer stalls scrolling.

@@ -8,3 +8,7 @@
 .pdfViewer .page:not(:has(> .gsr-dialog.gsr-vis)) { content-visibility: auto; }
 /* Text layer changes never affect layout outside the page. */
 .textLayer { contain: layout; }
+
+/* No spinner on pages that already show content (zoom, rotate, resize re-renders):
+   pdf.js keeps the old canvas as a zoom layer, so the spinner only flickers on top. */
+.pdfViewer .page:has(canvas) .loadingIcon { display: none; }
