@@ -144,6 +144,7 @@ Full history in **[CHANGELOG.md](CHANGELOG.md)**; every entry links to a release
 
 | Version | Date | Headline |
 |---|---|---|
+| [1.4.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.0) | 2026-09-06 | Huge files open instantly: range-only loading over HTTP and for local files, pages fetched on demand above 48 MB. |
 | [1.3.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.1) | 2026-09-06 | AMOLED black: paper to #000, text to #fff, figures with night mode's exact tones via an SVG tone curve. |
 | [1.3.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.0) | 2026-09-06 | Night/day toggle for the rendered pages beside Copy PDF Link, with Shift+N; DarkPDF's logic as a per-canvas filter. |
 | [1.2.4](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.4) | 2026-09-05 | pdf.js's worker is created while the viewer is still loading and handed to the first document, instead of being started on open. Parse wait… |

@@ -3,7 +3,7 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
-## 1.4.0 · Huge files
+## [1.4.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.0) · Huge files · 2026-09-06
 
 - Very large PDFs open instantly. The relay's first request is a 1 MB byte range; when the server answers 206 the viewer knows the size and pdf.js reads by range only, never downloading the file whole. Above 48 MB it fetches just the pages you look at, in 1 MB chunks (`disableAutoFetch`); below that the remainder streams by range in the background so download and citation analysis still get the whole file.
 - Local files are read by range too: Chrome slices `file://` reads, the size is found with about 40 one-byte probes, and files under 4 MB are read whole as before.
