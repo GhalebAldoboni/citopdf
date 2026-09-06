@@ -1106,20 +1106,26 @@
       this.A.clear();
     }
     // Register the analyzer worker: forward its LoadRequests, tell it the page count.
-    I(a) {
-      a.addEventListener("message", (b) => { (b = b.data) && "q" in b && Oi(this, a, b.q); });
-      this.v.then(() => { a.postMessage({ n: this.numPages }); }).catch(() => {});
+    // Register the analyzer worker: forward its LoadRequests, tell it the page
+    // count. A window (offset, count) lets one loaded document be analysed one
+    // paper at a time: the analyzer sees pages 0..count-1, the loader gets
+    // offset..offset+count-1 (journal issues bundle many papers in one PDF).
+    I(a, offset = 0, count = 0) {
+      const win = { offset, count };
+      a.addEventListener("message", (b) => { (b = b.data) && "q" in b && Oi(this, a, b.q, win); });
+      this.v.then(() => { a.postMessage({ n: win.count || this.numPages }); }).catch(() => {});
     }
   }
   const Ki = function (a, b, c) { a.S && a.S.postMessage({ type: b, val: c }, "*"); };
   // Oi: analyzer LoadRequest (jspb JSON [id, kind, src, page, params]) -> loader -> analyzer
-  const Oi = function (a, b, q) {
+  const Oi = function (a, b, q, win) {
     let req;
     try { req = JSON.parse(q); } catch (e) { return; }
     if (!Array.isArray(req)) return;
     const workerId = req[0], d = req[1], e = req[3];
     const k = a.Cc++;
     req[0] = k;
+    if (win && win.offset && typeof req[3] === "number") req[3] = e + win.offset;   // analyzer page -> document page
     a.A.set(k, (m) => {
       if (a.closed || !m || typeof m !== "object" || !m.result) return;
       const g = m.result, le = [];
@@ -1129,9 +1135,9 @@
     Ki(a, 0, JSON.stringify(req));
   };
   // Xq: boot the analyzer (mode 0 = full analysis incl. citations + references)
-  function Xq(b) {
+  function Xq(b, offset = 0, count = 0) {
     const a = new Worker(chrome.runtime.getURL("/analyzer_worker_bin.js"));
-    b.I(a);
+    b.I(a, offset, count);
     a.postMessage({ m: 0 });
     return a;
   }
@@ -1142,7 +1148,8 @@
   const state = {
     doc: null, host: null, worker: null,
     B: new Map(),   // pageIndex -> { ha: [groups], ta: [refs], j: overlay div | null }
-    Nb: [],         // references (Article field 5)
+    Nb: [],         // references (Article field 5) of the last installed paper
+    segments: [],   // [{ start, end, Nb }] one per paper when the PDF bundles several
     da: null,       // Bp popup
     R: null,        // .gsr-dialogs layer
     Y: null,        // tj cite dialog
@@ -1197,14 +1204,29 @@
         const g = V({ className: "gsr-citation-link" });
         Af(a.A, fld(f, 2) || [], g);
         g.addEventListener("click", (h) => {
-          popup().display(viewer.v.getBoundingClientRect(), g, b, e, state.Nb);
+          popup().display(viewer.v.getBoundingClientRect(), g, b, e, refsForPage(c));
           h.preventDefault();
           h.stopPropagation();
         });
         a.j.appendChild(g);
       }
   };
-  const bs = function (b) {
+  function refsForPage(p) {
+    for (const s of state.segments) if (p >= s.start && p < s.end) return s.Nb;
+    return state.Nb;
+  }
+  // Shift every page index in an Article by `off` (groups: field 4 -> pages in
+  // field 1 and entries' field 1; references: field 5 -> field 1).
+  function offsetArticle(b, off) {
+    if (!off) return;
+    for (const d of A(b, 4)) {
+      const pages = fld(d, 1);
+      if (Array.isArray(pages)) for (let i = 0; i < pages.length; i++) pages[i] = Number(pages[i]) + off;
+      for (const e of A(d, 2)) for (const f of A(e, 1)) if (fld(f, 1) != null) f[0] = Number(f[0]) + off;
+    }
+    for (const r of A(b, 5)) if (fld(r, 1) != null) r[0] = Number(r[0]) + off;
+  }
+  const bs = function (b, seg) {
     for (const d of A(b, 4))
       for (const e of Md(d, 1)) {
         const c = pageState(e);
@@ -1212,6 +1234,7 @@
         if (c.j) { const pv = getPageView(e); pv && pv.viewport && No({ A: pv.viewport, j: c.j }, d, e); }
       }
     state.Nb = A(b, 5);
+    if (seg) { seg.Nb = state.Nb; state.segments.push(seg); }
     for (const d of state.Nb) pageState(C(d, 1)).ta.push(d);
   };
   function renderPageLinks(pageIndex) {
@@ -1225,10 +1248,11 @@
     } else pf(p.j);
     for (const g of p.ha) No({ A: pv.viewport, j: p.j }, g, pageIndex);
   }
-  function installArticle(article) {
+  function installArticle(article, seg) {
     const groups = A(article, 4);
     if (!groups.length) return;
-    bs(article);
+    seg && offsetArticle(article, seg.start);
+    bs(article, seg);
     // Pages rendered before the analysis finished will not fire pagerendered again.
     for (const [i, p] of state.B) {
       if (!p.ha.length || p.j) continue;
@@ -1247,57 +1271,135 @@
     for (const p of state.B.values()) p.j && p.j.remove();
     state.B.clear();
     state.Nb = [];
+    state.segments = [];
     state.worker = null;
     state.host = null;
     state.doc = null;
   }
-  // Run Scholar's analyzer over raw PDF bytes; onArticle gets each Article proto (jspb JSON).
-  function runAnalysis(bytes, onArticle) {
-    const host = new LoaderHost(bytes);
-    const worker = Xq(host);
-    // Keypoint parameters Scholar fetches from its server; empty = none (dh default).
-    worker.postMessage({ k: "", kf: "", l: "", kl: 0 });
-    // Scholar keeps its loader alive for rendering; this viewer renders with its
-    // own pdf.js, so drop the loader (a second parsed copy of the PDF) once the
-    // analyzer has delivered its results and gone quiet.
-    let idle = 0, gotArticle = false;
-    const armTeardown = () => {
-      clearTimeout(idle);
-      if (gotArticle) idle = setTimeout(() => { if (!host.closed) { host.cleanup(); worker.terminate(); } }, 5000);
-    };
-    worker.addEventListener("message", (t) => {
-      if (!(t = t.data)) return;
-      if ("q" in t) armTeardown();
-      if (typeof t.a === "string") {
-        let u = null;
-        try { u = JSON.parse(t.a); } catch (e) {}
-        u && onArticle(u);
-        gotArticle = true;
-        armTeardown();
-      }
-    });
-    worker.addEventListener("error", (e) => { console.warn("scholar-citations: analyzer error", e.message); });
-    host.v.catch((e) => { console.warn("scholar-citations:", e.message); });
-    return { host, worker };
+  // ---------------------------------------------------------------------------
+  // Papers inside one PDF. Scholar's analyzer assumes a single article: given a
+  // journal issue it merges every reference list and maps citations for the
+  // first paper only. So the document is split into papers first, using the
+  // PDF outline when it has one entry per paper, otherwise the page text: a
+  // paper starts on a page with an "Abstract" (or "Index Terms"/"Keywords")
+  // heading that follows a "References" heading, and ends before the next one.
+  // (Bookmarks are deliberately ignored: single papers usually have one per section.)
+  // ---------------------------------------------------------------------------
+  // The analyzer needs the entire document (doc.getData() resolves once the
+  // background download is complete) and its loader holds a second copy, so
+  // only absurdly large files are skipped.
+  const ANALYZE_MAX_BYTES = 1024 * 1024 * 1024;
+  const SEGMENT_MIN_PAGES = 20;   // shorter documents are analysed as one paper
+  async function segmentsFromOutline(doc) {
+    let outline = null;
+    try { outline = await doc.getOutline(); } catch (e) { return null; }
+    if (!outline || outline.length < 2) return null;
+    const starts = new Set();
+    for (const item of outline) {
+      try {
+        let dest = item.dest;
+        if (typeof dest === "string") dest = await doc.getDestination(dest);
+        if (!Array.isArray(dest) || !dest[0]) continue;
+        starts.add(await doc.getPageIndex(dest[0]));
+      } catch (e) {}
+    }
+    const list = [...starts].sort((a, b) => a - b);
+    return list.length >= 2 ? list : null;
   }
-  // Files above this size are loaded page by page (embedded.js) and never held
-  // whole; the analyzer needs the entire document, so it is skipped for them.
-  const ANALYZE_MAX_BYTES = 100 * 1024 * 1024;
+  // First-page markers across publishers: "Abstract" / "Abstract—" (IEEE,
+  // Springer, arXiv), "a b s t r a c t" (Elsevier), "Index Terms" (IEEE),
+  // "Keywords", "CCS Concepts" / "Additional Key Words" (ACM).
+  const RE_START = /^\s*(abstract\b|a\s?b\s?s\s?t\s?r\s?a\s?c\s?t\b|index terms|key\s?words|ccs concepts|additional key words|acm reference format)/i;
+  const RE_REFS = /^\s*(references|bibliography|literature cited|works cited)\s*$/i;
+  function pageLines(tc) {
+    const rows = new Map();
+    for (const it of tc.items) {
+      if (!it.str || !it.str.trim()) continue;
+      const y = Math.round(it.transform[5] / 3);
+      rows.set(y, (rows.get(y) || "") + it.str + " ");
+    }
+    return [...rows.entries()].sort((a, b) => b[0] - a[0]).map((r) => r[1].trim());
+  }
+  async function segmentsFromText(doc) {
+    const n = doc.numPages, starts = [0];
+    let refsSeen = false;
+    for (let i = 0; i < n; i++) {
+      let lines;
+      try { lines = pageLines(await (await doc.getPage(i + 1)).getTextContent()); } catch (e) { continue; }
+      const isStart = lines.slice(0, 40).some((l) => RE_START.test(l));
+      const hasRefs = lines.some((l) => l.length < 40 && RE_REFS.test(l));
+      if (i > 0 && isStart && refsSeen && i - starts[starts.length - 1] >= 2) { starts.push(i); refsSeen = false; }
+      if (hasRefs) refsSeen = true;
+    }
+    return starts.length >= 2 ? starts : null;
+  }
+  async function segmentDocument(doc) {
+    const n = doc.numPages;
+    if (n < SEGMENT_MIN_PAGES) return [{ start: 0, end: n }];
+    // Outlines are not used: most single papers carry one bookmark per section.
+    let starts = await segmentsFromText(doc);
+    if (!starts) return [{ start: 0, end: n }];
+    starts = [...new Set([0, ...starts])].sort((a, b) => a - b);
+    return starts.map((st, i) => ({ start: st, end: i + 1 < starts.length ? starts[i + 1] : n })).filter((s) => s.end > s.start);
+  }
+
+  // Run Scholar's analyzer over one page window of the loaded document.
+  // Resolves with the Article proto (jspb JSON) or null.
+  function runSegment(host, seg) {
+    return new Promise((resolve) => {
+      const worker = Xq(host, seg.start, seg.end - seg.start);
+      state.worker = worker;
+      // Keypoint parameters Scholar fetches from its server; empty = none (dh default).
+      worker.postMessage({ k: "", kf: "", l: "", kl: 0 });
+      let article = null, quiet = 0, requests = 0;
+      const finish = () => {
+        clearTimeout(quiet); try { worker.terminate(); } catch (e) {}
+        console.log(`scholar-citations: pages ${seg.start + 1}-${seg.end}: ${requests} loader requests, ` + (article ? `${A(article, 4).length} citation groups, ${A(article, 5).length} references` : "no result"));
+        resolve(article);
+      };
+      const arm = (ms) => { clearTimeout(quiet); quiet = setTimeout(finish, ms); };
+      worker.addEventListener("message", (t) => {
+        if (!(t = t.data)) return;
+        if ("q" in t) { requests++; arm(article ? 3000 : 120000); }
+        if (typeof t.a === "string") {
+          // The worker posts two articles: citations/references first, block
+          // elements later. Keep the one carrying citation data.
+          let u = null; try { u = JSON.parse(t.a); } catch (e) {}
+          if (u && (!article || A(u, 4).length || A(u, 5).length)) article = u;
+          arm(3000);
+        }
+      });
+      worker.addEventListener("error", (e) => { console.warn("scholar-citations: analyzer error", e.message); finish(); });
+      arm(120000);
+    });
+  }
   async function analyze(app) {
     const doc = app.pdfDocument;
     if (!doc || state.doc === doc) return;
-    if (window.__pdfByteLength > ANALYZE_MAX_BYTES) { console.log("scholar-citations: skipped, document larger than 100 MB"); return; }
+    if (window.__pdfByteLength > ANALYZE_MAX_BYTES) { console.log("scholar-citations: skipped, document larger than 1 GB"); return; }
     reset();
     state.doc = doc;
     let bytes;
     try { bytes = await doc.getData(); } catch (e) { return; }
     if (state.doc !== doc) return;
-    let run;
-    try {
-      run = runAnalysis(bytes, (u) => { state.worker === run.worker && installArticle(u); });
-    } catch (e) { console.warn("scholar-citations: loader failed", e); return; }
-    state.host = run.host;
-    state.worker = run.worker;
+    let segments;
+    try { segments = await segmentDocument(doc); } catch (e) { segments = [{ start: 0, end: doc.numPages }]; }
+    if (state.doc !== doc) return;
+    if (segments.length > 1) console.log("scholar-citations: " + segments.length + " papers found, analysing each");
+    let host;
+    try { host = new LoaderHost(bytes); } catch (e) { console.warn("scholar-citations: loader failed", e); return; }
+    state.host = host;
+    host.v.catch((e) => { console.warn("scholar-citations:", e.message); });
+    for (const seg of segments) {
+      if (state.doc !== doc || state.host !== host) return;
+      const article = await runSegment(host, seg);
+      if (state.doc !== doc || state.host !== host) return;
+      article && installArticle(article, segments.length > 1 ? seg : null);
+    }
+    // This viewer renders with its own pdf.js; drop the loader (a second parsed
+    // copy of the PDF) now that the analyzer is done.
+    if (!host.closed) host.cleanup();
+    state.worker = null;
   }
   function hook(app) {
     setupReader();
@@ -1331,5 +1433,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
   // Debug/testing hook.
-  window.__gsrCitations = { runAnalysis, state };
+  window.__gsrCitations = { analyze, segmentDocument, state };
 })();

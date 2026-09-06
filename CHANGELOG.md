@@ -3,6 +3,13 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## [1.5.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.0) · Real worker, per-paper citations · 2026-09-06
+
+- pdf.js now runs in its real Web Worker. A theme script deleted `URL.prototype.origin`, which made pdf.js's same-origin check fail and fall back to parsing on the main thread; the property is restored and the viewer's origin check accepts the extension origin. First page of a local 7 MB paper: 540 ms → 410 ms, and parsing no longer stalls scrolling.
+- Citation analysis works on streamed files: the cap rises from 100 MB to 1 GB, and analysis starts once the background download has the whole file.
+- Journal issues that bundle several papers are split into papers before analysis, so each paper's in-text citations resolve against its own reference list. A split is made only where a "References" heading is followed by a page that opens with an abstract or keywords; single papers are never split (PDF bookmarks are deliberately ignored, since they usually mark sections). Verified: a 26-page arXiv paper and a 39-page ACM paper analyse as one unit (53 and 276 references), and a merged two-paper file gives the first paper its own list.
+- Fixed a regression from the per-paper runner where the analyzer's later block-elements message replaced the citations message, leaving some papers with no popups.
+
 ## [1.4.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.1) · 2026-09-06
 
 - Large files now finish downloading in the background after the first pages are shown, instead of fetching only the pages in view. pdf.js's auto-fetch pulls the remaining chunks one at a time, with page requests taking priority; it needed `disableStream`, since pdf.js otherwise expects a full stream that the ranged relay no longer sends. Verified with a 200 MB PDF: first page at 0.35 s, complete after about 6 s, page jumps served meanwhile; local files behave the same.

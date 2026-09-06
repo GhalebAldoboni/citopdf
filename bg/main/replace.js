@@ -1,4 +1,8 @@
-"use strict";delete URL.prototype.origin;
+"use strict";
+// The original viewer deleted URL.prototype.origin here to slip past pdf.js's
+// file-origin check. That also broke pdf.js's same-origin test for its worker
+// script, so it fell back to parsing PDFs on the main thread. The check is
+// disabled in viewer.js instead (validateFileURL) and origin is left intact.
 // The declarativeNetRequest redirect (worker.js) cannot percent-encode the PDF URL,
 // so a raw "?file=https://host/a.pdf?x=1&y=2" would be cut at the first "&" and
 // any %xx in it would be decoded twice. A raw value starts with an unencoded

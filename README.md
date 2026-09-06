@@ -13,6 +13,8 @@
 
 <br>
 
+> **Why this exists.** I am a researcher who deals with a huge number of papers and PDFs every day. I built this extension to solve my own problems with reading them, to ease my work, and decided to share it with the community.
+
 **Scholar PDF Viewer Lite** replaces Chrome's built-in PDF viewer with a port of pdf.js made for reading papers. Click any citation in the text and the referenced paper opens right there, looked up on Google Scholar: abstract snippet, *Cited by*, *Cite*, *Save to library*. Underneath, rendering is scheduled around what you are doing, so it stays quick and light on documents that make Chrome's viewer and the Scholar reader stutter, and it adapts itself to low-memory, few-core machines.
 
 <br>
