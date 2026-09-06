@@ -27,6 +27,7 @@
 | 60 fps pinch zoom, one render per gesture | – | – | – | ✓ |
 | Sharp at 300%+ on Retina | – | – | – | ✓ |
 | Smooth on heavy scanned PDFs | – | – | – | ✓ |
+| Opens a 1 GB PDF instantly, pages fetched on demand | ✓ | – | – | ✓ |
 | Adapts to weak devices (memory, cores) | – | – | – | ✓ |
 | Off-screen pages cost nothing to scroll past | – | – | – | ✓ |
 | Text layers only for pages in view | – | – | – | ✓ |
@@ -108,7 +109,8 @@ Open any PDF link. Citations turn blue a few seconds after the document loads.
 
 The rule is simple: the main thread does nothing during a gesture, and only pages you will actually look at get rendered.
 
-- **First page before the download ends**: the PDF page relays byte ranges to pdf.js, so a 7 MB paper shows page 1 in 0.7 s on a 2 MB/s link instead of 4.5 s.
+- **Huge files open instantly**: the first request is a 1 MB range, and a file above 48 MB is never downloaded whole; pdf.js pulls only the pages you look at, in 1 MB chunks. A 200 MB PDF shows page 1 in 0.34 s over HTTP with 4.75 MB transferred, and in 0.22 s from disk, where local files are read by range after a 40-probe size search.
+- **First page before the download ends**: for ordinary papers the rest keeps streaming by range in the background; a 7 MB paper shows page 1 in 0.55 s on a 2 MB/s link instead of 4.5 s.
 - **Zoom on the compositor**: CSS transform preview, one pdf.js render per gesture, 61 fps measured on a figure-heavy paper.
 - **Continuous pinch**: trackpad deltas map to `exp(-Δy/100)` (Scholar's formula) instead of 10% steps; the point under your fingers stays put.
 - **Sharp at high zoom**: canvas cap raised 16 → 48 MP, true Retina resolution to roughly 380%.

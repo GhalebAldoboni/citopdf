@@ -39,6 +39,8 @@ unless stated otherwise.
 
 | pdf.js starts its worker only when the document opens, so every load first waits for the 1 MB worker script to load and compile. | `bg/main/embedded.js` creates the worker as soon as pdf.js is parsed, while the rest of the viewer is still loading, and hands it to the first `open()`. | Parse wait after open drops from about 160 ms to 20 ms; first page of a local 7 MB paper about 70 ms sooner (530-580 ms from frame start in Chrome for Testing). |
 
+| A 1 GB scan still had to arrive whole: the relay streamed the full body into pdf.js and local files were read with one XMLHttpRequest. | The relay's first request is a 1 MB `Range`; a 206 answer gives the size and pdf.js then reads by range only (`bg/main/embed.js`, `embedded.js`). Above 48 MB `disableAutoFetch` keeps it to the pages in view, in 1 MB chunks; below, the rest streams by range in the background. Local files: Chrome slices `file://` reads by range, so the size is found with about 40 one-byte probes and the file is read the same way (files under 4 MB are read whole). Citation analysis is skipped above 100 MB, since it needs the entire document. | 200 MB PDF: first page at 0.34 s over HTTP with 4.75 MB transferred in total, 0.22 s from disk; page 3 renders on demand. |
+
 ## Weak devices
 
 | Problem | Fix | Effect |

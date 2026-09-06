@@ -1280,9 +1280,13 @@
     host.v.catch((e) => { console.warn("scholar-citations:", e.message); });
     return { host, worker };
   }
+  // Files above this size are loaded page by page (embedded.js) and never held
+  // whole; the analyzer needs the entire document, so it is skipped for them.
+  const ANALYZE_MAX_BYTES = 100 * 1024 * 1024;
   async function analyze(app) {
     const doc = app.pdfDocument;
     if (!doc || state.doc === doc) return;
+    if (window.__pdfByteLength > ANALYZE_MAX_BYTES) { console.log("scholar-citations: skipped, document larger than 100 MB"); return; }
     reset();
     state.doc = doc;
     let bytes;

@@ -46,7 +46,11 @@
   function ma() { var a = new AbortController(), c = setTimeout(function () { a.abort(); }, 3e4); return { h: a.signal, i: c }; }
   function na(a, b) {
     var t = ma(), c = t.h, d = t.i;
-    fetch(a, { signal: c }).then(function (f) {
+    // The first request asks for the first megabyte only. A server that honours
+    // ranges answers 206 with the total size in Content-Range, and the viewer
+    // then reads pages by range without ever downloading the whole file; a
+    // server that ignores Range answers 200 with the full body as before.
+    fetch(a, { signal: c, headers: { Range: "bytes=0-1048575" } }).then(function (f) {
       clearTimeout(d);
       var e = f.headers, g = e.get("Content-Type") || "";
       if (g.startsWith("text/html") && e.get("cf-mitigated") === "challenge") {
@@ -59,24 +63,26 @@
         if (m.startsWith("filename*=")) name = X(ba(m.substring(10)));
         else if (m.startsWith("filename=") && !name) name = X(m.substring(9));
       });
-      var ranges = e.get("Accept-Ranges") === "bytes";
-      ranges && ra(b);
-      b.postMessage({ type: "pdf", body: f.body, length: e.get("Content-Length"), encoding: e.get("Content-Encoding") || "", filename: name, status: f.status, contentType: g, ranges: ranges }, [f.body]);
+      var ranges = f.status === 206, total = e.get("Content-Length");
+      if (ranges) { var cr = /\/(\d+)\s*$/.exec(e.get("Content-Range") || ""); total = cr ? cr[1] : null; }
+      ra(b);
+      b.postMessage({ type: "pdf", body: f.body, length: total, encoding: e.get("Content-Encoding") || "", filename: name, status: f.status, contentType: g, ranges: ranges }, [f.body]);
     }).catch(function (f) { clearTimeout(d); b.postMessage({ type: "pdf", error: "fetch pdf: " + f.message }); });
   }
   // Scholar: qa()/ra() — byte-range requests from the viewer, so page 1 can
   // render before the whole file has arrived (pdf.js asks for the xref and the
   // first page's objects first).
-  function qa(a, b, c, d) {
+  function qa(a, b, c, d, id) {
     b >= 0 && c > b && fetch(a, { headers: { Range: "bytes=" + b + "-" + (c - 1) } }).then(function (f) {
-      d.postMessage({ type: "pdfrange", body: f.body, begin: b }, [f.body]);
-    }).catch(function () { d.postMessage({ type: "pdfrange", begin: b, error: true }); });
+      // status/contentRange let the viewer verify that the server honoured the range.
+      d.postMessage({ type: "pdfrange", body: f.body, begin: b, id: id, status: f.status, contentRange: f.headers.get("Content-Range") || "" }, [f.body]);
+    }).catch(function () { d.postMessage({ type: "pdfrange", begin: b, id: id, error: true }); });
   }
   function ra(a) {
     a.addEventListener("message", function (b) {
       if (b.data && typeof b.data === "object" && b.data.type === "fetchrange") {
-        var c = b.data.url, d = b.data.begin; b = b.data.end;
-        typeof c === "string" && typeof d === "number" && typeof b === "number" && Z(c) && qa(c, d, b, a);
+        var c = b.data.url, d = b.data.begin, id = b.data.id; b = b.data.end;
+        typeof c === "string" && typeof d === "number" && typeof b === "number" && Z(c) && qa(c, d, b, a, id);
       }
     });
     a.start();

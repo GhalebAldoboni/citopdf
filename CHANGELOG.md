@@ -3,6 +3,13 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## 1.4.0 · Huge files
+
+- Very large PDFs open instantly. The relay's first request is a 1 MB byte range; when the server answers 206 the viewer knows the size and pdf.js reads by range only, never downloading the file whole. Above 48 MB it fetches just the pages you look at, in 1 MB chunks (`disableAutoFetch`); below that the remainder streams by range in the background so download and citation analysis still get the whole file.
+- Local files are read by range too: Chrome slices `file://` reads, the size is found with about 40 one-byte probes, and files under 4 MB are read whole as before.
+- Citation analysis is skipped for documents above 100 MB (it needs the entire file).
+- Measured in Chrome for Testing with a 200 MB PDF: first page at 0.34 s over HTTP with 4.75 MB transferred, 0.22 s from disk; a 7 MB paper over a throttled 2 MB/s link now shows page 1 in 0.55 s. Servers that ignore `Range` fall back to the buffered path with a progress bar.
+
 ## [1.3.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.1) · AMOLED black · 2026-09-06
 
 - Third state for the page-mode button: day → night → AMOLED black (eclipse icon). AMOLED sends paper to pure black and text to pure white with a black toolbar, sidebar and background, while figures, greys and colours keep night mode's exact tones. That split is done with an SVG tone curve (`feComponentTransfer`) instead of `invert(1)`, since a linear inversion would shift every mid-tone. Verified per colour in Chrome for Testing: mid-tones identical to night mode, white→0, black→255.

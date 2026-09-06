@@ -29,24 +29,76 @@
   };
   const post = (msg, transfer) => { try { window.parent.postMessage(msg, "*", transfer || []); } catch (e) {} };
 
+  // Size classes. Above BIG the file is never downloaded whole: pdf.js pulls
+  // only the byte ranges of the pages you look at (disableAutoFetch), in 1 MB
+  // chunks, so a 1 GB scan opens as fast as a 1 MB paper.
+  const BIG = 48 * 1024 * 1024, LOCAL_RANGED_MIN = 4 * 1024 * 1024;
+  const chunkFor = (total) => (total > BIG ? 1024 * 1024 : total > 8 * 1024 * 1024 ? 256 * 1024 : 65536);
+  const rangeArgs = (transport, total) => ({ range: transport, length: total, disableAutoFetch: total > BIG, rangeChunkSize: chunkFor(total) });
+  const loadError = (app, message) => { try { app.l10n.get("loading_error", null, "An error occurred while loading the PDF.").then((m) => app.error(m, { message })); } catch (e) {} };
+
+  // pdf.js derives the title and download name from the response headers it
+  // fetched itself; with relayed bytes it has none, so supply the page's.
+  const keepFilename = (app, name) => {
+    name && app.eventBus.on("metadataloaded", () => {
+      if (app._contentDispositionFilename) return;
+      app._contentDispositionFilename = name;
+      const t = app.documentInfo && app.documentInfo.Title;
+      app.setTitle(t ? `${t} - ${name}` : name);
+    }, { once: true });
+  };
+
+  // --- Local files: Chrome slices file:// reads by Range (a start at or past the
+  // end fails, the last byte succeeds), so the size is found by probing and the
+  // document is read page by page instead of whole. Files under 4 MB are read
+  // whole, which is quicker.
+  const localSize = async (url) => {
+    const ok = async (n) => { try { const r = await fetch(url, { headers: { Range: `bytes=${n}-${n}` } }); return (await r.arrayBuffer()).byteLength === 1; } catch (e) { return false; } };
+    if (!(await ok(LOCAL_RANGED_MIN))) return 0;
+    let lo = LOCAL_RANGED_MIN, hi = lo * 2;            // lo succeeds, find a failing hi
+    while (await ok(hi)) { lo = hi; hi *= 2; if (hi > 64 * 1024 * 1024 * 1024) return 0; }
+    while (hi - lo > 1) { const mid = Math.floor((lo + hi) / 2); (await ok(mid)) ? (lo = mid) : (hi = mid); }
+    return lo + 1;                                     // lo is the last readable index
+  };
+  const openLocal = (url, app) => {
+    const lib = window.pdfjsLib;
+    (async () => {
+      let total = 0;
+      if (lib && lib.PDFDataRangeTransport) { try { total = await localSize(url); } catch (e) { total = 0; } }
+      if (total) {
+        window.__pdfByteLength = total;
+        class LocalRange extends lib.PDFDataRangeTransport {
+          requestDataRange(begin, end) {
+            fetch(url, { headers: { Range: `bytes=${begin}-${end - 1}` } }).then((r) => r.arrayBuffer())
+              .then((b) => this.onDataRange(begin, new Uint8Array(b))).catch(() => this.abort());
+          }
+          abort() {}
+        }
+        try { await app.open({ url, originalUrl: url }, rangeArgs(new LocalRange(total, new Uint8Array(0), false), total)); return; }
+        catch (e) { /* fall through to a full read */ }
+      }
+      try {
+        app.setTitleUsingUrl(url);
+        const r = await fetch(url);
+        const b = await r.arrayBuffer();
+        if (!b.byteLength) throw new Error("Empty response for " + url);
+        await app.open(new Uint8Array(b));
+      } catch (e) {
+        loadError(app, 'Cannot read local file. Enable "Allow access to file URLs" for this extension in chrome://extensions. ' + (e && e.message || "") + " [" + url + "]");
+      }
+    })();
+    return true;
+  };
+
   // Called by viewer.js before it opens a URL. Returns true when the load is handled here.
   window.__embedOpen = function (url, app) {
+    if (/^file:/i.test(url)) return openLocal(url, app);
     if (!embedded || !/^https?:/i.test(url)) return false;
     app.setTitleUsingUrl(url);
     const ch = new MessageChannel(), port = ch.port1;
     const fallback = () => app.open(url);
     let done = false, transport = null;
     const timer = setTimeout(() => { if (!done) { done = true; fallback(); } }, 35e3);
-    const keepFilename = (name) => {
-      // pdf.js derives the title and download name from the response headers it
-      // fetched itself; with relayed bytes it has none, so supply the page's.
-      name && app.eventBus.on("metadataloaded", () => {
-        if (app._contentDispositionFilename) return;
-        app._contentDispositionFilename = name;
-        const t = app.documentInfo && app.documentInfo.Title;
-        app.setTitle(t ? `${t} - ${name}` : name);
-      }, { once: true });
-    };
     port.onmessage = async (e) => {
       const d = e.data;
       if (!d || typeof d !== "object") return;
@@ -61,33 +113,23 @@
       if (!d.body || d.status >= 400 || /^text\/html/i.test(d.contentType || "")) return fallback();
       const total = Number(d.length) || 0;
       const lib = window.pdfjsLib;
-      const ranged = d.ranges && !d.encoding && total > 0 && lib && lib.PDFDataRangeTransport;
+      const ranged = !!(d.ranges && !d.encoding && total > 0 && lib && lib.PDFDataRangeTransport);
       try {
         if (ranged) {
-          // Progressive: the full stream is fed as it arrives, and pdf.js pulls
-          // the xref and first-page objects through byte ranges right away, so
-          // page 1 renders long before the download finishes.
+          // The page answered the first megabyte with 206: read it as initial
+          // data and let pdf.js pull everything else by range. Below BIG pdf.js
+          // keeps fetching the remaining chunks in the background (so download
+          // and citation analysis have the whole file); above BIG it fetches
+          // only the pages you look at.
+          window.__pdfByteLength = total;
+          const head = new Uint8Array(await new Response(d.body).arrayBuffer());
           class Relay extends lib.PDFDataRangeTransport {
             requestDataRange(begin, end) { port.postMessage({ type: "fetchrange", url, begin, end }); }
             abort() {}
           }
-          transport = new Relay(total, new Uint8Array(0), false);
-          keepFilename(d.filename);
-          const opening = app.open({ url, originalUrl: url }, { range: transport, length: total });
-          (async () => {
-            const reader = d.body.getReader(); let loaded = 0;
-            try {
-              for (;;) {
-                const { value, done: end } = await reader.read();
-                if (end) break;
-                loaded += value.length;
-                transport.onDataProgressiveRead(value);
-                transport.onDataProgress(loaded, total);
-              }
-            } catch (err) {}
-            transport.onDataProgressiveDone();
-          })();
-          await opening;
+          transport = new Relay(total, head, head.length >= total);
+          keepFilename(app, d.filename);
+          await app.open({ url, originalUrl: url }, rangeArgs(transport, total));
         } else {
           const chunks = []; let loaded = 0;
           const reader = d.body.getReader();
@@ -99,9 +141,10 @@
           }
           const bytes = new Uint8Array(loaded); let off = 0;
           for (const c of chunks) { bytes.set(c, off); off += c.length; }
+          window.__pdfByteLength = loaded;
           const opening = app.open(bytes);
           app.url = app.baseUrl = url;           // downloads and "Copy PDF link" keep the real URL
-          keepFilename(d.filename);
+          keepFilename(app, d.filename);
           await opening;
         }
       } catch (err) { fallback(); }
