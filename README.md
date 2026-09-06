@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/chrome-128%2B-34a853?style=for-the-badge" alt="Chrome 128+">
   <img src="https://img.shields.io/badge/engine-pdf.js-d14836?style=for-the-badge" alt="pdf.js">
   <img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey?style=for-the-badge" alt="Apache 2.0">
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-📜-1f6feb?style=for-the-badge" alt="Changelog"></a>
 </p>
 
 <br>
@@ -133,6 +134,18 @@ No analytics, no beacons, no update pings. The only network traffic the extensio
 | You print a web PDF | the PDF's own server | A 1-byte range request to confirm it is served as a PDF. |
 
 Nothing is sent when you merely read a PDF. Scholar's usage counters are kept locally and never reported; the original viewer's Web Store rating prompt and update URL were removed.
+
+## Changelog
+
+Full history in **[CHANGELOG.md](CHANGELOG.md)**; every entry links to a release with the installable zip.
+
+| Version | Date | Headline |
+|---|---|---|
+| [1.2.4](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.4) | 2026-09-05 | pdf.js's worker is created while the viewer is still loading and handed to the first document, instead of being started on open. Parse wait… |
+| [1.2.3](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.3) | 2026-09-05 | Faster first page for web PDFs. The relay now streams progressively and answers pdf.js byte-range requests from the page (Scholar's… |
+| [1.2.2](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.2) | 2026-09-05 | Download-style PDF responses (`Content-Disposition: attachment`, or a binary type with a `.pdf` name) are no longer redirected to the… |
+| [1.2.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.1) | 2026-09-05 | Fix: citation popups did not appear in the embedded viewer. Scholar's sandboxed loader page was not web-accessible, so Chrome refused to… |
+| [1.2.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.0) | 2026-09-05 | The address bar shows the PDF's own URL, as with Chrome's viewer. Transplanted from the Scholar reader's `contentscript-compiled.js`:… |
 
 ## Under the hood
 

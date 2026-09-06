@@ -1,26 +1,26 @@
 # Changelog
 
-All notable changes, grouped by release. Every item was verified in Chrome for
+All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
-## 1.2.4
+## [1.2.4](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.4) · 2026-09-05
 
 - pdf.js's worker is created while the viewer is still loading and handed to the first document, instead of being started on open. Parse wait after open drops from about 160 ms to 20 ms; a local 7 MB paper paints its first page roughly 70 ms sooner.
 - Plugin suppression at document_start was tried and dropped: no measurable gain over Scholar's DOMContentLoaded swap.
 
-## 1.2.3
+## [1.2.3](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.3) · 2026-09-05
 
 - Faster first page for web PDFs. The relay now streams progressively and answers pdf.js byte-range requests from the page (Scholar's `qa()`/`ra()`), so the first page renders while the rest of the file is still downloading. Measured on a 7 MB paper over a throttled 2 MB/s link: first page at 0.7 s instead of 4.5 s. Buffered path kept for servers without range support or with compressed bodies.
 
-## 1.2.2
+## [1.2.2](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.2) · 2026-09-05
 
 - Download-style PDF responses (`Content-Disposition: attachment`, or a binary type with a `.pdf` name) are no longer redirected to the viewer page, which had to re-fetch them from the extension origin and failed on publishers like ACM (`?download=true`). The navigation response is rewritten to inline `application/pdf` with a declarativeNetRequest header rule, so Chrome shows its PDF page and the viewer embeds there under the real URL; the page fetches the file with its own cookies and referrer, and the file name from the original header is kept. Verified for attachment, octet-stream `.pdf` and named-attachment responses.
 
-## 1.2.1
+## [1.2.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.1) · 2026-09-05
 
 - Fix: citation popups did not appear in the embedded viewer. Scholar's sandboxed loader page was not web-accessible, so Chrome refused to load it in a frame under a web page and the analyzer never received the document. Listed like Scholar does.
 
-## 1.2.0 · Real URLs
+## [1.2.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.0) · Real URLs · 2026-09-05
 
 - The address bar shows the PDF's own URL, as with Chrome's viewer. Transplanted from the Scholar reader's `contentscript-compiled.js`: `bg/main/embed.js` runs on the PDF page Chrome creates for the response and swaps its body for a full-window frame holding the viewer. Back, reload, bookmarks and "copy address" keep the PDF URL.
 - The page fetches the PDF on the viewer's behalf over a MessagePort (Scholar's `na()` relay), so the request carries the page's cookies and referrer; publisher paywalls and one-time links work without any header rewriting. The viewer falls back to fetching itself if the relay fails.
@@ -31,7 +31,7 @@ Testing with the unpacked extension unless marked otherwise.
 - `#gsr=0` or `#toolbar=0` leaves Chrome's viewer alone.
 - Verified in Chrome for Testing: top-level, `file://` and framed PDFs keep their URL and render; the relay sends cookies; `#page=` syncs both ways; attachments redirect; the print frame is created.
 
-## 1.1.0 · Lite
+## [1.1.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.1.0) · Lite · 2026-09-05
 
 ### Performance
 - Device profile (`bg/main/device.js`): machines with 4 GB or less, or two cores, keep pdf.js's 16 MP canvas cap, pre-render one page ahead, gate flings from 1800 px/s and wait 200 ms before text layers.
@@ -45,7 +45,7 @@ Testing with the unpacked extension unless marked otherwise.
 - The Scholar account lookup runs on the first popup, not on every viewer load.
 - README: comparison against Chrome, Scholar and stock pdf.js; privacy section.
 
-## 1.0.0
+## [1.0.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.0.0) · 2026-09-05
 
 ### Citations (transplanted from the Google Scholar PDF Reader)
 - Scholar's citation engine runs as-is: the analyzer Web Worker (`analyzer_worker_bin.js`) and its sandboxed pdf.js loader iframe (`pdf_loader_iframe.html`, `pdf_loader-compiled.js`, `pdf.min.js`, `pdf.worker.min.js`, `bcmaps/`), which feeds it page text and annotations in Scholar's protobuf format. The only edit to the worker is one line so it emits its result as JSON instead of binary protobuf, which avoids shipping Scholar's proto runtime.
