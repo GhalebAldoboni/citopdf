@@ -3,7 +3,7 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
-## 1.4.1
+## [1.4.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.1) · 2026-09-06
 
 - Large files now finish downloading in the background after the first pages are shown, instead of fetching only the pages in view. pdf.js's auto-fetch pulls the remaining chunks one at a time, with page requests taking priority; it needed `disableStream`, since pdf.js otherwise expects a full stream that the ranged relay no longer sends. Verified with a 200 MB PDF: first page at 0.35 s, complete after about 6 s, page jumps served meanwhile; local files behave the same.
 
