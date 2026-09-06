@@ -27,3 +27,32 @@ html[data-night="1"] #viewerContainer { background-color: var(--body-bg-color); 
   -webkit-mask-image: url(../main/moon.svg);
   mask-image: url(../main/moon.svg);
 }
+.toolbarButton.nightMode.black::before {
+  -webkit-mask-image: url(../main/eclipse.svg);
+  mask-image: url(../main/eclipse.svg);
+}
+
+/* AMOLED black: paper -> #000 and text -> #fff, while everything in between
+   (figures, greys, colours) follows night mode's invert(.85) curve. That split
+   is not possible with invert()/contrast(), which are linear, so an SVG
+   feComponentTransfer curve (#gsrAmoled, injected by night.js) does it:
+   0 -> 1, then 0.85 - 0.7v across the mid-range, 1 -> 0. A black UI around it. */
+html[data-night="2"] .pdfViewer .page canvas,
+html[data-night="2"] .pdfViewer .page img,
+html[data-night="2"] .thumbnailImage {
+  filter: url(#gsrAmoled) hue-rotate(180deg);
+}
+html[data-night="2"] .pdfViewer .page { background-color: #000; }
+html[data-night="2"] .pdfViewer .page .loadingIcon { filter: invert(1); }
+html[data-night="2"]:root {
+  --body-bg-color: #000;
+  --toolbar-bg-color: #000;
+  --sidebar-bg-color: #000;
+  --toolbar-border-color: #1a1a1a;
+  --field-bg-color: #0a0a0a;
+  --doorhanger-bg-color: #0a0a0a;
+  --scrollbar-bg-color: #000;
+  --scrollbar-color: #333;
+}
+html[data-night="2"] #viewerContainer { background-color: #000; }
+html[data-night="2"] .pdfViewer .page { box-shadow: none; border-color: #000; }

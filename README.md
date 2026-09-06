@@ -34,7 +34,7 @@
 | Keeps the PDF's real URL in the address bar | ✓ | ✓ | – | ✓ |
 | Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | – | ✓ |
 | Dark theme with readable popup | – | ✓ | – | ✓ |
-| Night mode for the pages, one click | – | – | – | ✓ |
+| Night mode and AMOLED black for the pages, one click | – | – | – | ✓ |
 | Open source | – | – | ✓ | ✓ |
 
 <br>
@@ -79,8 +79,8 @@ The address bar shows the PDF's own URL, exactly as with Chrome's viewer: the vi
 </td>
 <td valign="top">
 
-### 🌙 Night mode, vector printing
-A sun/moon button beside *Copy PDF Link* (or Shift+N) inverts the pages themselves, not just the toolbar, and remembers your choice across tabs. The idea and tint levels come from [DarkPDF](https://github.com/ArshSB/DarkPDF), applied as a per-page filter so scrolling and pinch stay at full speed and printing stays untouched. Printing goes through Chrome's own PDF engine for vector output; the pdf.js fallback runs at 300 dpi.
+### 🌙 Night and AMOLED black, vector printing
+A button beside *Copy PDF Link* (or Shift+N) cycles day → night → AMOLED black, showing a sun, moon or eclipse for the current state, and remembers your choice across tabs. Night inverts the pages to dark grey; AMOLED black sends paper to pure black and text to white while figures and colours keep night mode's exact tones, with a black toolbar around them. The idea and tint levels come from [DarkPDF](https://github.com/ArshSB/DarkPDF), applied as a per-page filter so scrolling and pinch stay at full speed and printing stays untouched. Printing goes through Chrome's own PDF engine for vector output; the pdf.js fallback runs at 300 dpi.
 
 </td>
 </tr>
@@ -163,7 +163,7 @@ Full history in **[CHANGELOG.md](CHANGELOG.md)**; every entry links to a release
 | `bg/main/nativeprint.js` | Vector printing through Chrome's PDF engine. |
 | `bg/main/printscript.js` | Content script inside PDF frames: print handshake, embedded-PDF detection. |
 | `bg/main/replace.js` | Theme wiring, toolbar additions, URL normalisation. |
-| `bg/main/night.js`, `night.css` | Night/day toggle for the rendered pages (DarkPDF's logic as a per-canvas filter), persisted in storage, Shift+N. |
+| `bg/main/night.js`, `night.css` | Day / night / AMOLED black for the rendered pages (DarkPDF's logic as a per-canvas filter; AMOLED uses an SVG tone curve), persisted in storage, Shift+N. |
 
 <details>
 <summary>Repository layout</summary>

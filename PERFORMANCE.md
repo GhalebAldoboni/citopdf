@@ -53,6 +53,7 @@ unless stated otherwise.
 | Problem | Fix | Effect |
 |---|---|---|
 | DarkPDF inverts a PDF by laying a light-grey `mix-blend-mode: difference` overlay over the whole viewport, which makes the compositor blend the entire page group on every frame and also inverts the UI. | The same inversion (`invert(.85) hue-rotate(180deg)`, DarkPDF's middle tint) is applied as a `filter` on each page canvas (`bg/main/night.css`). Chrome keeps the filtered result with the canvas layer; toolbar, citation overlays, selection and print are unaffected. | Pinch and fling frame times with night mode on are no worse than with it off in the same session (Chrome for Testing, 2x DPR). |
+| AMOLED black needs paper at #000 and text at #fff while figures keep night mode's tones; `invert()` and `contrast()` are linear and cannot separate the two. | An SVG `feComponentTransfer` curve (`#gsrAmoled`, 11 points: 0→1, 0.85−0.7v in between, 1→0) applied as the same per-canvas filter. Verified per colour: mid-tones and colours identical to night mode, white→0, black→255. | Same per-layer cost as night mode; the curve runs in the compositor. |
 
 ## Printing
 

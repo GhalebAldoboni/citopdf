@@ -3,6 +3,10 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## 1.3.1 · AMOLED black
+
+- Third state for the page-mode button: day → night → AMOLED black (eclipse icon). AMOLED sends paper to pure black and text to pure white with a black toolbar, sidebar and background, while figures, greys and colours keep night mode's exact tones. That split is done with an SVG tone curve (`feComponentTransfer`) instead of `invert(1)`, since a linear inversion would shift every mid-tone. Verified per colour in Chrome for Testing: mid-tones identical to night mode, white→0, black→255.
+
 ## [1.3.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.0) · Night mode · 2026-09-06
 
 - Night/day toggle for the rendered pages: a sun/moon button beside *Copy PDF Link*, showing the current state, plus Shift+N. State persists in `chrome.storage.local` and follows across tabs. The toggle, persistence and the three tint levels are DarkPDF's ([ArshSB/DarkPDF](https://github.com/ArshSB/DarkPDF)); the inversion is applied as a per-canvas filter instead of DarkPDF's full-viewport blend overlay so scrolling and pinch keep their frame rate and the toolbar, citation overlays and printing stay untouched. Verified: toggle, persistence, shortcut and frame times in Chrome for Testing.
