@@ -1,0 +1,29 @@
+/*
+ * Night mode: inverts the rendered pages, not the UI. The idea and the tint
+ * levels come from DarkPDF (github.com/ArshSB/DarkPDF), which lays a light-grey
+ * mix-blend-mode:difference overlay over the whole viewport. Blending a full
+ * viewport group costs the compositor every frame, so here the inversion is a
+ * filter on each page canvas instead: Chrome keeps the filtered result with the
+ * canvas layer, scrolling and pinch zoom composite it as usual, and the
+ * toolbar, citation overlays, text selection and printing stay untouched.
+ * DarkPDF tints #bfbfbf / #d9d9d9 / #f2f2f2 map to invert(.75 / .85 / .95).
+ */
+:root { --night-invert: .85; }
+html[data-night="1"] .pdfViewer .page canvas,
+html[data-night="1"] .pdfViewer .page img,
+html[data-night="1"] .thumbnailImage {
+  filter: invert(var(--night-invert)) hue-rotate(180deg);
+}
+html[data-night="1"] .pdfViewer .page { background-color: #202020; }
+html[data-night="1"] .pdfViewer .page .loadingIcon { filter: invert(1); }
+/* keep pdf.js's soft page shadow readable on the dark background */
+html[data-night="1"] #viewerContainer { background-color: var(--body-bg-color); }
+
+.toolbarButton.nightMode::before {
+  -webkit-mask-image: url(../main/sun.svg);
+  mask-image: url(../main/sun.svg);
+}
+.toolbarButton.nightMode.on::before {
+  -webkit-mask-image: url(../main/moon.svg);
+  mask-image: url(../main/moon.svg);
+}

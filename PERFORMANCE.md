@@ -48,6 +48,12 @@ unless stated otherwise.
 | A 48 MP canvas is 192 MB of bitmap. With several cached pages at high zoom a 4 GB machine swaps or the tab dies. | `device.js` marks machines with 4 GB or less, or two cores, as lite. On them the canvas cap stays at pdf.js's 16 MP, look-ahead drops to one page, fling gating starts at 1800 px/s and text layers wait 200 ms. | Same resolution up to about 220% on Retina (440% at 1x); far less memory beyond that. |
 | Text layer insertions could trigger layout outside the page. | `contain: layout` on the text layer. | Layout stays local to the page. |
 
+## Night mode
+
+| Problem | Fix | Effect |
+|---|---|---|
+| DarkPDF inverts a PDF by laying a light-grey `mix-blend-mode: difference` overlay over the whole viewport, which makes the compositor blend the entire page group on every frame and also inverts the UI. | The same inversion (`invert(.85) hue-rotate(180deg)`, DarkPDF's middle tint) is applied as a `filter` on each page canvas (`bg/main/night.css`). Chrome keeps the filtered result with the canvas layer; toolbar, citation overlays, selection and print are unaffected. | Pinch and fling frame times with night mode on are no worse than with it off in the same session (Chrome for Testing, 2x DPR). |
+
 ## Printing
 
 | Problem | Fix (`bg/main/nativeprint.js`) | Effect |
