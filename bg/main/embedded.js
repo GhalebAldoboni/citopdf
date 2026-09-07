@@ -200,6 +200,10 @@
     // pdf.js treats a framed viewer as "embedded" and then leaves document.title
     // alone (and skips a few top-level niceties). This frame is the whole tab.
     Object.defineProperty(app, "isViewerEmbedded", { get: () => false, configurable: true });
+    // With isViewerEmbedded forced off, pdf.js would open links in this frame,
+    // where sites that forbid framing (orcid.org, doi.org…) show "refused to
+    // connect". Open external links in a new tab, as Chrome's viewer does.
+    try { window.PDFViewerApplicationOptions.set("externalLinkTarget", 2 /* LinkTarget.BLANK */); } catch (e) {}
     useWarmWorker(app);
     (app.initializedPromise ? app.initializedPromise : Promise.resolve()).then(() => { hook(app); sendTitle(); });
   };
