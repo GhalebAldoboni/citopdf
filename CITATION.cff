@@ -7,7 +7,7 @@ authors:
 repository-code: "https://github.com/GhalebAldoboni/citopdf"
 url: "https://ghalebaldoboni.github.io/citopdf/"
 license: Apache-2.0
-version: 1.6.0
+version: 1.6.1
 date-released: 2026-09-07
 abstract: "A free, open-source Chrome extension that replaces the built-in PDF viewer with a research reader: PDFs stream in and open before the download finishes, every in-text citation shows a Google Scholar popup with Cite and Save, and rendering is tuned to stay fast on low-memory machines."
 keywords: [PDF reader, Chrome extension, citations, Google Scholar, streaming, pdf.js, research papers]

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#151a24"/><stop offset="1" stop-color="#232c3d"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ab4f8"/><stop offset="1" stop-color="#c58af9"/></linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <!-- page -->
+  <path d="M34 22h40l20 20v64a4 4 0 0 1-4 4H34a4 4 0 0 1-4-4V26a4 4 0 0 1 4-4z" fill="#ffffff"/>
+  <path d="M74 22v16a4 4 0 0 0 4 4h16z" fill="#c9d3e6"/>
+  <!-- text lines -->
+  <g fill="#d6dbe6"><rect x="40" y="56" width="48" height="5" rx="2.5"/><rect x="40" y="68" width="48" height="5" rx="2.5"/><rect x="40" y="80" width="30" height="5" rx="2.5"/><rect x="40" y="92" width="40" height="5" rx="2.5"/></g>
+  <!-- citation mark -->
+  <rect x="72" y="76" width="16" height="12" rx="3" fill="url(#accent)"/>
+  <!-- popup with quote -->
+  <g>
+    <rect x="54" y="90" width="52" height="30" rx="8" fill="url(#accent)"/>
+    <path d="M66 90 l6 -8 l6 8 z" fill="#8ab4f8"/>
+    <g fill="#ffffff">
+      <circle cx="72" cy="101" r="5.5"/><path d="M66.5 101 C66.5 108 69 112 65 116 L69 116 C74.5 113 77.5 107 77.5 101 Z"/>
+      <circle cx="88" cy="101" r="5.5"/><path d="M82.5 101 C82.5 108 85 112 81 116 L85 116 C90.5 113 93.5 107 93.5 101 Z"/>
+    </g>
+  </g>
+</svg>

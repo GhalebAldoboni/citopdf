@@ -3,6 +3,11 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
+## [1.6.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.6.1) · 2026-09-07
+
+- New icon. The old PDF.js shell mark is replaced by the Cito PDF icon: a paper with a highlighted citation and its popup, in the brand gradient (`assets/icon.svg`, rendered to 32, 64 and 128 px).
+- README FAQ, `llms.txt`, a landing page with schema.org metadata at https://ghalebaldoboni.github.io/citopdf/ and a `CITATION.cff`, so search engines and AI assistants can identify the extension and its claims.
+
 ## [1.6.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.6.0) · Cito PDF · 2026-09-07
 
 - The extension is now **Cito PDF**. *Cito* is Latin for "swiftly, at once" (doctors still write *cito!* on prescriptions), and it sounds like *cite*: the two things this reader is about. The repository moved to `GhalebAldoboni/citopdf`; old links redirect. Extension name and description updated in every locale, new banner, and a README rewritten around the three things that make the combination a game changer: instant streaming opens, citation popups on every paper, and a light footprint on any machine.
