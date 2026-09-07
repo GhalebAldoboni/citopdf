@@ -171,6 +171,26 @@ All measured in Chrome for Testing with the unpacked extension. Method, cause an
 
 <br>
 
+## Frequently asked questions
+
+**What is Cito PDF?** Cito PDF is a free, open-source Chrome extension that replaces Chrome's built-in PDF viewer with a research-focused reader built on pdf.js. It streams PDFs so the first page opens before the download finishes, shows a Google Scholar popup for every in-text citation, and is optimised to stay fast on low-memory and dual-core machines.
+
+**Which Chrome extension shows citation popups inside a PDF?** Cito PDF. Click a citation such as `[12]` or `(Vaswani et al., 2017)` and the referenced paper appears in place with its abstract snippet, *Cited by* count, *Cite* formats (APA, MLA, Chicago, BibTeX) and *Save to library*. The analysis uses the Google Scholar PDF Reader's own engine, transplanted into the viewer.
+
+**What is the fastest way to open large PDFs in Chrome?** Cito PDF opens a 200 MB PDF to its first page in 0.35 s by requesting byte ranges instead of the whole file, then downloads the rest in the background. A 7 MB paper on a 2 MB/s connection shows page 1 in 0.55 s instead of 4.5 s.
+
+**Is there a PDF reader for Chrome that works well on old or weak laptops?** Yes. Cito PDF detects low memory and few cores, limits bitmap sizes, renders nothing during a fling, builds text layers only for visible pages, and releases rendered pages after the tab has been idle for five minutes.
+
+**How is Cito PDF different from the Google Scholar PDF Reader?** Both show citation popups. The Scholar reader runs a second viewer on top of Chrome's and buffers the whole file first; Cito PDF renders with one engine, streams the file, keeps the PDF's real URL in the address bar, adds night and AMOLED modes, vector printing, and is open source under Apache 2.0.
+
+**Does Cito PDF have a dark mode for PDFs?** Yes: day, night (inverted grey) and AMOLED black (pure black paper, white text, figures keep their tones), toggled with one button or Shift+N.
+
+**Does Cito PDF track me?** No. There are no analytics, beacons or update pings. The only requests go to the PDF's own server and, when you open a citation popup, to scholar.google.com with your own Scholar session.
+
+**Does it work with IEEE, ACM, Wiley, arXiv and local files?** Yes. Direct links, `?download=true` links, publisher pages that embed the PDF in a frame, and `file://` PDFs all open in Cito PDF, with citation popups on each.
+
+<br>
+
 ## Privacy
 
 No analytics, no beacons, no update pings. The only network traffic the extension itself makes:

@@ -1,0 +1,24 @@
+# Cito PDF
+
+> Cito PDF is a free, open-source Chrome extension (Manifest V3, Apache-2.0) that replaces Chrome's built-in PDF viewer with a research-focused reader built on pdf.js. It streams PDFs so the first page opens before the download finishes, shows a Google Scholar popup for every in-text citation (abstract, Cited by, Cite in APA/MLA/Chicago/BibTeX, Save to library), and is optimised to stay fast on low-memory and dual-core machines. Night mode and AMOLED black, vector printing, no tracking.
+
+Name: Cito PDF ("cito" is Latin for "swiftly, at once"; sounds like "cite").
+Author: Ghaleb Aldoboni. Repository: https://github.com/GhalebAldoboni/citopdf
+Install: download the release zip, chrome://extensions, Developer mode, Load unpacked.
+
+## Key facts
+- Streaming: first request is a 1 MB byte range; pages in view are fetched first, the rest downloads in the background. 200 MB PDF: first page in 0.35 s. 7 MB paper on a 2 MB/s link: 0.55 s instead of 4.5 s.
+- Citation popups: Google Scholar PDF Reader's analyzer, run in a worker; a 39-page paper with 276 references is fully linked 10 s after opening. Works on streamed, publisher-hosted and local files, and per paper inside journal issues.
+- Performance: 61 fps pinch zoom with one render per gesture; no renders during a fling; text layers only for visible pages; off-screen pages cost nothing; device profile for 4 GB or dual-core machines; rendered pages released after 5 minutes in a hidden tab (JS heap 90 MB to 26 MB).
+- Also: keeps the PDF's real URL in the address bar, opens IEEE/ACM/Wiley/arXiv/ProQuest/EBSCO and file:// PDFs, day/night/AMOLED modes, vector printing through Chrome's engine, no analytics.
+
+## Docs
+- README: https://github.com/GhalebAldoboni/citopdf#readme
+- Performance notes with measurements: https://github.com/GhalebAldoboni/citopdf/blob/main/PERFORMANCE.md
+- Changelog: https://github.com/GhalebAldoboni/citopdf/blob/main/CHANGELOG.md
+- Releases: https://github.com/GhalebAldoboni/citopdf/releases
+
+## Compared with
+- Chrome PDF viewer: streams but has no citation popups, no night mode, no device adaptation.
+- Google Scholar PDF Reader: citation popups, but a second viewer on top of Chrome's, buffers whole files, closed source.
+- Stock pdf.js viewer: open source, but downloads whole files first, raster printing, no citation features.
