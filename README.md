@@ -1,9 +1,14 @@
 <p align="center">
-  <img src="assets/banner.svg" alt="Scholar PDF Viewer Lite" width="100%">
+  <img src="assets/banner.svg" alt="Cito PDF" width="100%">
 </p>
 
+<h1 align="center">Cito PDF</h1>
+
+<p align="center"><strong>The instant PDF reader for research.</strong><br>
+Papers stream in and open at once. Every citation pops up in place. It stays light on any machine.</p>
+
 <p align="center">
-  <a href="https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/latest"><img src="https://img.shields.io/github/v/release/GhalebAldoboni/scholar-pdf-viewer-lite?style=for-the-badge&color=6f42c1&label=release" alt="Latest release"></a>
+  <a href="https://github.com/GhalebAldoboni/citopdf/releases/latest"><img src="https://img.shields.io/github/v/release/GhalebAldoboni/citopdf?style=for-the-badge&color=6f42c1&label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/manifest-v3-4c8eda?style=for-the-badge" alt="Manifest V3">
   <img src="https://img.shields.io/badge/chrome-128%2B-34a853?style=for-the-badge" alt="Chrome 128+">
   <img src="https://img.shields.io/badge/engine-pdf.js-d14836?style=for-the-badge" alt="pdf.js">
@@ -11,45 +16,91 @@
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-📜-1f6feb?style=for-the-badge" alt="Changelog"></a>
 </p>
 
+<p align="center">
+  <a href="#install"><b>Install</b></a> ·
+  <a href="#why-it-is-a-game-changer">Why</a> ·
+  <a href="#what-it-does">Features</a> ·
+  <a href="#the-numbers">Numbers</a> ·
+  <a href="#privacy">Privacy</a> ·
+  <a href="PERFORMANCE.md">Engineering notes</a>
+</p>
+
 <br>
 
-> **Why this exists.** I am a researcher who deals with a huge number of papers and PDFs every day. I built this extension to solve my own problems with reading them, to ease my work, and decided to share it with the community.
-
-**Scholar PDF Viewer Lite** replaces Chrome's built-in PDF viewer with a port of pdf.js made for reading papers. Click any citation in the text and the referenced paper opens right there, looked up on Google Scholar: abstract snippet, *Cited by*, *Cite*, *Save to library*. Underneath, rendering is scheduled around what you are doing, so it stays quick and light on documents that make Chrome's viewer and the Scholar reader stutter, and it adapts itself to low-memory, few-core machines.
+> *Cito* is Latin for **swiftly, at once**. Doctors still write *cito!* on a prescription to mean *immediately*. Say it aloud and you hear **cite**. That is the whole idea.
 
 <br>
 
-## Why not the others?
+## Why it is a game changer
 
-| | Chrome PDF viewer | Google Scholar PDF Reader | Stock pdf.js viewer | **Scholar PDF Viewer Lite** |
+Every PDF reader makes you choose. Chrome's viewer is fast but knows nothing about papers. Google Scholar's reader knows papers but runs a second viewer on top of Chrome's and stutters on heavy files. Stock pdf.js is open but downloads the whole file before you see a page. **Cito PDF is the first reader that gives you all three at once**, in one lightweight extension:
+
+<table>
+<tr>
+<td width="33%" valign="top" align="center">
+<h3>⚡ Instant</h3>
+The first page appears while the file is still downloading. A 200 MB scan shows page 1 in <b>0.35 s</b>; a 7 MB paper on a slow link in <b>0.55 s</b> instead of 4.5 s. The rest streams in behind you and the file is yours to keep.
+</td>
+<td width="33%" valign="top" align="center">
+<h3>📎 Cited</h3>
+Click <code>[12]</code> or <code>(Vaswani et al., 2017)</code> and the paper opens right there: title, authors, venue, abstract snippet, <i>Cited by</i>, <i>Cite</i>, <i>Save to library</i>. A 39-page paper with <b>276 references</b> is fully linked ten seconds after it opens.
+</td>
+<td width="33%" valign="top" align="center">
+<h3>🪶 Light</h3>
+<b>61 fps</b> pinch zoom, one render per gesture, nothing rendered while you fling, off-screen pages cost nothing. On a 4 GB or dual-core laptop it tunes itself down and keeps scrolling smooth.
+</td>
+</tr>
+</table>
+
+<br>
+
+## What you get, side by side
+
+| | Chrome PDF viewer | Google Scholar PDF Reader | Stock pdf.js viewer | **Cito PDF** |
 |---|:---:|:---:|:---:|:---:|
+| First page before the download ends (streaming) | ✓ | – | – | ✓ |
+| Opens a 1 GB PDF instantly, pages first, rest in the background | ✓ | – | – | ✓ |
 | In-text citation popups | – | ✓ | – | ✓ |
 | Cite / Save to Scholar library | – | ✓ | – | ✓ |
-| Renders with one engine (no second viewer running) | ✓ | – | ✓ | ✓ |
+| Citation popups on streamed and local files | – | – | – | ✓ |
+| One rendering engine (no second viewer running) | ✓ | – | ✓ | ✓ |
 | 60 fps pinch zoom, one render per gesture | – | – | – | ✓ |
 | Sharp at 300%+ on Retina | – | – | – | ✓ |
 | Smooth on heavy scanned PDFs | – | – | – | ✓ |
-| Opens a 1 GB PDF instantly, pages first, rest in the background | ✓ | – | – | ✓ |
 | Adapts to weak devices (memory, cores) | – | – | – | ✓ |
-| Off-screen pages cost nothing to scroll past | – | – | – | ✓ |
-| Text layers only for pages in view | – | – | – | ✓ |
+| Releases memory when the tab is idle | – | – | – | ✓ |
 | Vector printing | ✓ | ✓ | – (150 dpi raster) | ✓ |
 | Keeps the PDF's real URL in the address bar | ✓ | ✓ | – | ✓ |
 | Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | – | ✓ |
-| Dark theme with readable popup | – | ✓ | – | ✓ |
-| Night mode and AMOLED black for the pages, one click | – | – | – | ✓ |
+| Night mode and AMOLED black, one click | – | – | – | ✓ |
 | Open source | – | – | ✓ | ✓ |
 
 <br>
 
-## Features
+## Install
+
+Download the zip from the [latest release](https://github.com/GhalebAldoboni/citopdf/releases/latest) and unpack it, or clone:
+
+```bash
+git clone https://github.com/GhalebAldoboni/citopdf.git
+```
+
+1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the folder.
+2. On the extension card, enable **Allow access to file URLs** so local PDFs open here too.
+3. Sign in to [Google Scholar](https://scholar.google.com) in Chrome to enable *Save*.
+
+Open any PDF link. Citations turn blue a few seconds after the document loads.
+
+<br>
+
+## What it does
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
 ### 📎 Citations, in place
-Click `[12]` or `(Vaswani et al., 2017)`. Scholar's own analyzer finds every citation and reference in a background worker; the reference is resolved on Google Scholar and shown where you are: title, authors, venue, snippet with *Show more*, links to *Cited by*, *Related*, *Versions* and full text. Grouped citations like `[3, 7, 12]` page through with prev/next. *See in References* jumps to the bibliography entry.
+Click `[12]` or `(Vaswani et al., 2017)`. Scholar's own analyzer finds every citation and reference in a background worker; the reference is resolved on Google Scholar and shown where you are: title, authors, venue, snippet with *Show more*, links to *Cited by*, *Related*, *Versions* and full text. Grouped citations like `[3, 7, 12]` page through with prev/next. *See in References* jumps to the bibliography entry. Journal issues that bundle several papers are split first, so each paper's citations resolve against its own reference list.
 
 </td>
 <td width="50%" valign="top">
@@ -62,28 +113,42 @@ Click `[12]` or `(Vaswani et al., 2017)`. Scholar's own analyzer finds every cit
 <tr>
 <td valign="top">
 
-### ⚡ Zoom that keeps up
-A pinch is previewed on the compositor and committed to pdf.js once, when your fingers stop. Continuous factor, fixed anchor point, sharp re-render past 2×. Stock pdf.js re-rendered every page on every tick.
+### 🌊 Streaming, not downloading
+The first request is a one-megabyte range. If the server honours it, pdf.js reads by range: the pages you look at first, then the rest in the background, one chunk at a time, until the file is complete and fully local. Local files are read the same way. Nothing is fetched twice, and the whole paper stays in memory while you read.
 
 </td>
 <td valign="top">
 
-### 🏋️ Light on weak devices
-No renders start while you fling. Text layers are built in idle frames, only for pages in view. Off-screen pages skip layout and paint. On a 4 GB or dual-core machine the viewer keeps bitmaps small and pre-renders less, automatically.
+### ⚡ Zoom that keeps up
+A pinch is previewed on the compositor and committed to pdf.js once, when your fingers stop. Continuous factor, fixed anchor point, sharp re-render past 2×. No spinners flicker over pages that are already on screen.
 
 </td>
 </tr>
 <tr>
 <td valign="top">
 
-### 🌐 Opens everywhere, keeps the URL
-The address bar shows the PDF's own URL, exactly as with Chrome's viewer: the viewer lives inside the PDF page, the tab hash follows the page you are on, and Back, reload and bookmarks all keep working. Direct links, `file://` files, download links such as ACM's `?download=true` (the download header is rewritten so Chrome shows the page instead), and publisher pages that wrap the PDF in a frame (IEEE Xplore, Wiley, ProQuest, EBSCO) all open here. Add `#gsr=0` to a URL to see Chrome's viewer instead.
+### 🪶 Light on weak devices
+No renders start while you fling. Text layers are built in idle frames, only for pages in view. Off-screen pages skip layout and paint. On a 4 GB or dual-core machine the viewer keeps bitmaps small and pre-renders less, automatically. After five minutes in a background tab it releases every rendered page but the current one, and re-renders on return.
 
 </td>
 <td valign="top">
 
-### 🌙 Night and AMOLED black, vector printing
-A button beside *Copy PDF Link* (or Shift+N) cycles day → night → AMOLED black, showing a sun, moon or eclipse for the current state, and remembers your choice across tabs. Night inverts the pages to dark grey; AMOLED black sends paper to pure black and text to white while figures and colours keep night mode's exact tones, with a black toolbar around them. The idea and tint levels come from [DarkPDF](https://github.com/ArshSB/DarkPDF), applied as a per-page filter so scrolling and pinch stay at full speed and printing stays untouched. Printing goes through Chrome's own PDF engine for vector output; the pdf.js fallback runs at 300 dpi.
+### 🌐 Opens everywhere, keeps the URL
+The address bar shows the PDF's own URL, exactly as with Chrome's viewer: the viewer lives inside the PDF page, the tab hash follows the page you are on, and Back, reload and bookmarks all keep working. Direct links, `file://` files, download links such as ACM's `?download=true`, and publisher pages that wrap the PDF in a frame (IEEE Xplore, Wiley, ProQuest, EBSCO) all open here. Add `#gsr=0` to a URL to see Chrome's viewer instead.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🌙 Night and AMOLED black
+A button beside *Copy PDF Link* (or Shift+N) cycles day → night → AMOLED black and remembers your choice across tabs. Night inverts the pages to dark grey; AMOLED black sends paper to pure black and text to white while figures keep night mode's exact tones. Applied as a per-page filter, so scrolling and pinch stay at full speed.
+
+</td>
+<td valign="top">
+
+### 🖨 Vector printing
+Printing goes through Chrome's own PDF engine, so text stays text and lines stay lines. The pdf.js fallback runs at 300 dpi.
 
 </td>
 </tr>
@@ -91,39 +156,18 @@ A button beside *Copy PDF Link* (or Shift+N) cycles day → night → AMOLED bla
 
 <br>
 
-## Quick start
+## The numbers
 
-Download the zip from the [latest release](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/latest) and unpack it, or clone:
+All measured in Chrome for Testing with the unpacked extension. Method, cause and fix for each are in **[PERFORMANCE.md](PERFORMANCE.md)**.
 
-```bash
-git clone https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite.git
-```
-
-1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the folder.
-2. On the extension card, enable **Allow access to file URLs** so local PDFs open here too.
-3. Sign in to [Google Scholar](https://scholar.google.com) in Chrome to enable *Save*.
-
-Open any PDF link. Citations turn blue a few seconds after the document loads.
-
-<br>
-
-## Performance
-
-The rule is simple: the main thread does nothing during a gesture, and only pages you will actually look at get rendered.
-
-- **Huge files open instantly**: the first request is a 1 MB range, the pages you look at are fetched by range first, and the rest of the file keeps downloading in the background, one chunk at a time, until it is complete. A 200 MB PDF shows page 1 in 0.35 s over HTTP and 0.28 s from disk, and is fully local about six seconds later; local files are read by range after a 40-probe size search.
-- **First page before the download ends**: for ordinary papers the rest keeps streaming by range in the background; a 7 MB paper shows page 1 in 0.55 s on a 2 MB/s link instead of 4.5 s.
-- **Zoom on the compositor**: CSS transform preview, one pdf.js render per gesture, 61 fps measured on a figure-heavy paper.
-- **Continuous pinch**: trackpad deltas map to `exp(-Δy/100)` (Scholar's formula) instead of 10% steps; the point under your fingers stays put.
-- **Sharp at high zoom**: canvas cap raised 16 → 48 MP, true Retina resolution to roughly 380%.
-- **Idle-frame text layers**: built one per frame after scrolling settles, removing a 100 to 300 ms stall after every zoom or jump.
-- **No renders mid-fling**: above 2500 px/s nothing starts; the page you stop on renders first.
-- **Off-screen pages are free**: `content-visibility: auto` on pages outside the viewport, so the ten cached pages with their thousands of text spans cost no layout or paint.
-- **Text layers only where you look**: pre-rendered pages get their canvas now and their text layer when they scroll into view.
-- **Device profile**: on machines with 4 GB or less, or two cores, the canvas cap stays at 16 MP (192 MB less bitmap per page at high zoom), look-ahead drops to one page, and text layers wait a little longer. Rendering resolution is unchanged up to about 220% on Retina.
-- **Background citation analysis**: Scholar's analyzer worker at idle time, about 300 ms once per document.
-
-Every change, with its cause and measurement, is in **[PERFORMANCE.md](PERFORMANCE.md)**. Release-by-release detail is in **[CHANGELOG.md](CHANGELOG.md)**.
+| What | Before | Cito PDF |
+|---|---:|---:|
+| 200 MB PDF, time to page 1 over HTTP | whole file first | **0.35 s** |
+| 7 MB paper on a 2 MB/s link, time to page 1 | 4.5 s | **0.55 s** |
+| Pinch zoom on a figure-heavy paper | ~20 aborted renders, 100 to 200 ms stalls | **61 fps**, one render |
+| First page of a local 7 MB paper | 540 ms | **410 ms** |
+| 39-page paper, 276 references, citations linked | – | **10 s** after open |
+| Tab hidden 5 minutes, rendered pages held | all | **1** (JS heap 90 MB → 26 MB) |
 
 <br>
 
@@ -140,37 +184,47 @@ No analytics, no beacons, no update pings. The only network traffic the extensio
 
 Nothing is sent when you merely read a PDF. Scholar's usage counters are kept locally and never reported; the original viewer's Web Store rating prompt and update URL were removed.
 
+<br>
+
+## Why this exists
+
+I am a researcher who deals with a huge number of papers and PDFs every day. I built this extension to solve my own problems with reading them, to ease my work, and decided to share it with the community.
+
+<br>
+
 ## Changelog
 
 Full history in **[CHANGELOG.md](CHANGELOG.md)**; every entry links to a release with the installable zip.
 
 | Version | Date | Headline |
 |---|---|---|
-| [1.4.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.1) | 2026-09-06 | Big files finish downloading in the background after the first pages show. |
-| [1.4.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.0) | 2026-09-06 | Huge files open instantly: range-only loading over HTTP and for local files, pages fetched on demand above 48 MB. |
-| [1.3.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.1) | 2026-09-06 | AMOLED black: paper to #000, text to #fff, figures with night mode's exact tones via an SVG tone curve. |
-| [1.3.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.0) | 2026-09-06 | Night/day toggle for the rendered pages beside Copy PDF Link, with Shift+N; DarkPDF's logic as a per-canvas filter. |
-| [1.2.4](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.4) | 2026-09-05 | pdf.js's worker is created while the viewer is still loading and handed to the first document, instead of being started on open. Parse wait… |
-| [1.2.3](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.3) | 2026-09-05 | Faster first page for web PDFs. The relay now streams progressively and answers pdf.js byte-range requests from the page (Scholar's… |
-| [1.2.2](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.2) | 2026-09-05 | Download-style PDF responses (`Content-Disposition: attachment`, or a binary type with a `.pdf` name) are no longer redirected to the… |
-| [1.2.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.1) | 2026-09-05 | Fix: citation popups did not appear in the embedded viewer. Scholar's sandboxed loader page was not web-accessible, so Chrome refused to… |
-| [1.2.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.0) | 2026-09-05 | The address bar shows the PDF's own URL, as with Chrome's viewer. Transplanted from the Scholar reader's `contentscript-compiled.js`:… |
+| [1.6.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.6.0) | 2026-09-07 | Renamed to Cito PDF. |
+| [1.5.2](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.2) | 2026-09-06 | Citation popups on ranged loads (publisher URLs, local files); rendered pages released after five minutes hidden. |
+| [1.5.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.1) | 2026-09-06 | No page spinners while zooming, rotating or resizing. |
+| [1.5.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.0) | 2026-09-06 | pdf.js runs in its real worker; per-paper citation analysis for journal issues; analysis cap raised to 1 GB. |
+| [1.4.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.4.1) | 2026-09-06 | Big files finish downloading in the background after the first pages show. |
+| [1.4.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.4.0) | 2026-09-06 | Huge files open instantly: range-only loading over HTTP and for local files. |
+| [1.3.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.3.1) | 2026-09-06 | AMOLED black with night mode's exact figure tones. |
+| [1.3.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.3.0) | 2026-09-06 | Night/day toggle beside Copy PDF Link, with Shift+N. |
+| [1.2.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.2.0) | 2026-09-05 | The address bar shows the PDF's own URL, as with Chrome's viewer. |
+
+<br>
 
 ## Under the hood
 
 | Part | Role |
 |---|---|
-| `bg/main/embed.js`, `embedded.js` | Content script on Chrome's PDF page that hosts the viewer in a full-window frame under the PDF's own URL, relays the fetch, syncs title and `#page=` with the tab, and prints through the page (Scholar's `contentscript` mechanism). |
+| `bg/main/embed.js`, `embedded.js` | Content script on Chrome's PDF page that hosts the viewer in a full-window frame under the PDF's own URL, relays ranged fetches, syncs title and `#page=` with the tab, and prints through the page (Scholar's `contentscript` mechanism). |
 | `worker.js` | Service worker: rewrites download-style PDF responses to inline so Chrome shows them, context menus, options. |
 | `bg/helper/` | pdf.js 2.7 viewer and engine. |
-| `bg/main/scholar-citations.js` | Citation analysis and the reference popup, transplanted from the Google Scholar PDF Reader. Scholar's analyzer worker and sandboxed loader run unchanged; the UI keeps Scholar's identifiers so it diffs against the original bundle. |
+| `bg/main/scholar-citations.js` | Citation analysis, per-paper segmentation and the reference popup, transplanted from the Google Scholar PDF Reader. Scholar's analyzer worker and sandboxed loader run unchanged; the UI keeps Scholar's identifiers so it diffs against the original bundle. |
 | `bg/main/smooth.js` | Compositor zoom, continuous pinch, look-ahead rendering. |
 | `bg/main/device.js` | Device profile: memory, cores, pixel ratio; picks the lite settings. |
-| `bg/main/perf.js`, `perf.css` | Render scheduling: idle-frame, visible-first text layers, fling gating, off-screen page containment. |
+| `bg/main/perf.js`, `perf.css` | Render scheduling: idle-frame, visible-first text layers, fling gating, off-screen page containment, idle-tab memory release. |
 | `bg/main/nativeprint.js` | Vector printing through Chrome's PDF engine. |
 | `bg/main/printscript.js` | Content script inside PDF frames: print handshake, embedded-PDF detection. |
 | `bg/main/replace.js` | Theme wiring, toolbar additions, URL normalisation. |
-| `bg/main/night.js`, `night.css` | Day / night / AMOLED black for the rendered pages (DarkPDF's logic as a per-canvas filter; AMOLED uses an SVG tone curve), persisted in storage, Shift+N. |
+| `bg/main/night.js`, `night.css` | Day / night / AMOLED black for the rendered pages, persisted in storage, Shift+N. |
 
 <details>
 <summary>Repository layout</summary>

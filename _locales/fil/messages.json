@@ -1,1 +1,8 @@
-{"name":{"message":"PDF Viewer"},"description":{"message":"Ipakita ang anumang mga PDF file sa Chrome browser gamit ang HTML5. Online na editor, viewer at PDF converter tool."}}
+{
+  "name": {
+    "message": "Cito PDF"
+  },
+  "description": {
+    "message": "The instant PDF reader for research. Papers stream in and open at once, every citation pops up in place, and it stays light on any machine."
+  }
+}

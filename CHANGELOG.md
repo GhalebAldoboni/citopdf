@@ -3,59 +3,63 @@
 All notable changes, newest first. Each version links to its release, which carries the installable zip. Every item was verified in Chrome for
 Testing with the unpacked extension unless marked otherwise.
 
-## [1.5.2](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.2) · Citations on ranged loads, idle memory · 2026-09-06
+## [1.6.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.6.0) · Cito PDF · 2026-09-07
+
+- The extension is now **Cito PDF**. *Cito* is Latin for "swiftly, at once" (doctors still write *cito!* on prescriptions), and it sounds like *cite*: the two things this reader is about. The repository moved to `GhalebAldoboni/citopdf`; old links redirect. Extension name and description updated in every locale, new banner, and a README rewritten around the three things that make the combination a game changer: instant streaming opens, citation popups on every paper, and a light footprint on any machine.
+
+## [1.5.2](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.2) · Citations on ranged loads, idle memory · 2026-09-06
 
 - Citation popups on papers opened from publisher URLs and from disk. Two bugs hid them on the ranged loading path used for files above 1 MB (ACM, IEEE, local): `documentloaded` fires after `pagesloaded` there, so the analyzer's reset wiped the analysis it had just started; and the analyzer read the bytes before the background download was complete. The reset now only fires for a different document, and analysis waits for the download to finish. Verified with a 39-page, 276-reference ACM paper over ranged HTTP (popups at 10 s) and from disk, and with the arXiv paper on the buffered path.
 - Memory while reading, memory when away: the whole file stays in memory while the tab is open, so nothing is fetched twice. After the tab has been hidden for five minutes, every rendered page except the current one is released, along with thumbnails and pdf.js's worker-side font and image caches, and rendering stays paused until the tab is shown again, when the pages in view re-render on demand. Measured on the ACM paper: 7 rendered pages → 1 while hidden, JS heap 90 MB → 26 MB.
 
-## [1.5.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.1) · 2026-09-06
+## [1.5.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.1) · 2026-09-06
 
 - No more page spinners while zooming, rotating or resizing. pdf.js keeps the previous canvas on screen as a zoom layer during the re-render, so the spinner only flickered on top of visible content; it is now shown only on pages that have nothing rendered yet (`bg/main/perf.css`). Verified: zero visible spinners on rendered pages across three zoom steps in Chrome for Testing.
 
-## [1.5.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.5.0) · Real worker, per-paper citations · 2026-09-06
+## [1.5.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.0) · Real worker, per-paper citations · 2026-09-06
 
 - pdf.js now runs in its real Web Worker. A theme script deleted `URL.prototype.origin`, which made pdf.js's same-origin check fail and fall back to parsing on the main thread; the property is restored and the viewer's origin check accepts the extension origin. First page of a local 7 MB paper: 540 ms → 410 ms, and parsing no longer stalls scrolling.
 - Citation analysis works on streamed files: the cap rises from 100 MB to 1 GB, and analysis starts once the background download has the whole file.
 - Journal issues that bundle several papers are split into papers before analysis, so each paper's in-text citations resolve against its own reference list. A split is made only where a "References" heading is followed by a page that opens with an abstract or keywords; single papers are never split (PDF bookmarks are deliberately ignored, since they usually mark sections). Verified: a 26-page arXiv paper and a 39-page ACM paper analyse as one unit (53 and 276 references), and a merged two-paper file gives the first paper its own list.
 - Fixed a regression from the per-paper runner where the analyzer's later block-elements message replaced the citations message, leaving some papers with no popups.
 
-## [1.4.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.1) · 2026-09-06
+## [1.4.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.4.1) · 2026-09-06
 
 - Large files now finish downloading in the background after the first pages are shown, instead of fetching only the pages in view. pdf.js's auto-fetch pulls the remaining chunks one at a time, with page requests taking priority; it needed `disableStream`, since pdf.js otherwise expects a full stream that the ranged relay no longer sends. Verified with a 200 MB PDF: first page at 0.35 s, complete after about 6 s, page jumps served meanwhile; local files behave the same.
 
-## [1.4.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.4.0) · Huge files · 2026-09-06
+## [1.4.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.4.0) · Huge files · 2026-09-06
 
 - Very large PDFs open instantly. The relay's first request is a 1 MB byte range; when the server answers 206 the viewer knows the size and pdf.js reads by range only, never downloading the file whole. Above 48 MB it fetches just the pages you look at, in 1 MB chunks (`disableAutoFetch`); below that the remainder streams by range in the background so download and citation analysis still get the whole file.
 - Local files are read by range too: Chrome slices `file://` reads, the size is found with about 40 one-byte probes, and files under 4 MB are read whole as before.
 - Citation analysis is skipped for documents above 100 MB (it needs the entire file).
 - Measured in Chrome for Testing with a 200 MB PDF: first page at 0.34 s over HTTP with 4.75 MB transferred, 0.22 s from disk; a 7 MB paper over a throttled 2 MB/s link now shows page 1 in 0.55 s. Servers that ignore `Range` fall back to the buffered path with a progress bar.
 
-## [1.3.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.1) · AMOLED black · 2026-09-06
+## [1.3.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.3.1) · AMOLED black · 2026-09-06
 
 - Third state for the page-mode button: day → night → AMOLED black (eclipse icon). AMOLED sends paper to pure black and text to pure white with a black toolbar, sidebar and background, while figures, greys and colours keep night mode's exact tones. That split is done with an SVG tone curve (`feComponentTransfer`) instead of `invert(1)`, since a linear inversion would shift every mid-tone. Verified per colour in Chrome for Testing: mid-tones identical to night mode, white→0, black→255.
 
-## [1.3.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.3.0) · Night mode · 2026-09-06
+## [1.3.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.3.0) · Night mode · 2026-09-06
 
 - Night/day toggle for the rendered pages: a sun/moon button beside *Copy PDF Link*, showing the current state, plus Shift+N. State persists in `chrome.storage.local` and follows across tabs. The toggle, persistence and the three tint levels are DarkPDF's ([ArshSB/DarkPDF](https://github.com/ArshSB/DarkPDF)); the inversion is applied as a per-canvas filter instead of DarkPDF's full-viewport blend overlay so scrolling and pinch keep their frame rate and the toolbar, citation overlays and printing stay untouched. Verified: toggle, persistence, shortcut and frame times in Chrome for Testing.
 
-## [1.2.4](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.4) · 2026-09-05
+## [1.2.4](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.2.4) · 2026-09-05
 
 - pdf.js's worker is created while the viewer is still loading and handed to the first document, instead of being started on open. Parse wait after open drops from about 160 ms to 20 ms; a local 7 MB paper paints its first page roughly 70 ms sooner.
 - Plugin suppression at document_start was tried and dropped: no measurable gain over Scholar's DOMContentLoaded swap.
 
-## [1.2.3](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.3) · 2026-09-05
+## [1.2.3](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.2.3) · 2026-09-05
 
 - Faster first page for web PDFs. The relay now streams progressively and answers pdf.js byte-range requests from the page (Scholar's `qa()`/`ra()`), so the first page renders while the rest of the file is still downloading. Measured on a 7 MB paper over a throttled 2 MB/s link: first page at 0.7 s instead of 4.5 s. Buffered path kept for servers without range support or with compressed bodies.
 
-## [1.2.2](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.2) · 2026-09-05
+## [1.2.2](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.2.2) · 2026-09-05
 
 - Download-style PDF responses (`Content-Disposition: attachment`, or a binary type with a `.pdf` name) are no longer redirected to the viewer page, which had to re-fetch them from the extension origin and failed on publishers like ACM (`?download=true`). The navigation response is rewritten to inline `application/pdf` with a declarativeNetRequest header rule, so Chrome shows its PDF page and the viewer embeds there under the real URL; the page fetches the file with its own cookies and referrer, and the file name from the original header is kept. Verified for attachment, octet-stream `.pdf` and named-attachment responses.
 
-## [1.2.1](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.1) · 2026-09-05
+## [1.2.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.2.1) · 2026-09-05
 
 - Fix: citation popups did not appear in the embedded viewer. Scholar's sandboxed loader page was not web-accessible, so Chrome refused to load it in a frame under a web page and the analyzer never received the document. Listed like Scholar does.
 
-## [1.2.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.2.0) · Real URLs · 2026-09-05
+## [1.2.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.2.0) · Real URLs · 2026-09-05
 
 - The address bar shows the PDF's own URL, as with Chrome's viewer. Transplanted from the Scholar reader's `contentscript-compiled.js`: `bg/main/embed.js` runs on the PDF page Chrome creates for the response and swaps its body for a full-window frame holding the viewer. Back, reload, bookmarks and "copy address" keep the PDF URL.
 - The page fetches the PDF on the viewer's behalf over a MessagePort (Scholar's `na()` relay), so the request carries the page's cookies and referrer; publisher paywalls and one-time links work without any header rewriting. The viewer falls back to fetching itself if the relay fails.
@@ -66,7 +70,7 @@ Testing with the unpacked extension unless marked otherwise.
 - `#gsr=0` or `#toolbar=0` leaves Chrome's viewer alone.
 - Verified in Chrome for Testing: top-level, `file://` and framed PDFs keep their URL and render; the relay sends cookies; `#page=` syncs both ways; attachments redirect; the print frame is created.
 
-## [1.1.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.1.0) · Lite · 2026-09-05
+## [1.1.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.1.0) · Lite · 2026-09-05
 
 ### Performance
 - Device profile (`bg/main/device.js`): machines with 4 GB or less, or two cores, keep pdf.js's 16 MP canvas cap, pre-render one page ahead, gate flings from 1800 px/s and wait 200 ms before text layers.
@@ -75,12 +79,12 @@ Testing with the unpacked extension unless marked otherwise.
 - `contain: layout` on text layers.
 
 ### Housekeeping
-- Renamed to Scholar PDF Viewer Lite.
+- Renamed to Scholar PDF Viewer Lite (now Cito PDF).
 - Removed the original viewer's Web Store rating prompt, its jQuery copy, the store `update_url` and the dead donate button.
 - The Scholar account lookup runs on the first popup, not on every viewer load.
 - README: comparison against Chrome, Scholar and stock pdf.js; privacy section.
 
-## [1.0.0](https://github.com/GhalebAldoboni/scholar-pdf-viewer-lite/releases/tag/v1.0.0) · 2026-09-05
+## [1.0.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.0.0) · 2026-09-05
 
 ### Citations (transplanted from the Google Scholar PDF Reader)
 - Scholar's citation engine runs as-is: the analyzer Web Worker (`analyzer_worker_bin.js`) and its sandboxed pdf.js loader iframe (`pdf_loader_iframe.html`, `pdf_loader-compiled.js`, `pdf.min.js`, `pdf.worker.min.js`, `bcmaps/`), which feeds it page text and annotations in Scholar's protobuf format. The only edit to the worker is one line so it emits its result as JSON instead of binary protobuf, which avoids shipping Scholar's proto runtime.

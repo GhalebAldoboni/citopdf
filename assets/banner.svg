@@ -18,14 +18,14 @@
   <circle cx="120" cy="400" r="180" fill="#c58af9" opacity="0.05"/>
 
   <!-- title block -->
-  <text x="72" y="146" font-size="44" font-weight="700" fill="#f1f3f4" letter-spacing="-1" textLength="520" lengthAdjust="spacingAndGlyphs">Scholar PDF Viewer <tspan fill="url(#accent)">Lite</tspan></text>
-  <text x="74" y="192" font-size="18" fill="#9aa0a6" textLength="530" lengthAdjust="spacingAndGlyphs">pdf.js based viewer with in-text citation popups, heavily optimised.</text>
+  <text x="72" y="146" font-size="64" font-weight="800" fill="#f1f3f4" letter-spacing="-2">Cito <tspan fill="url(#accent)">PDF</tspan></text>
+  <text x="74" y="192" font-size="19" fill="#9aa0a6">Cite swift. Read instantly.</text>
   <rect x="74" y="222" width="120" height="4" rx="2" fill="url(#accent)"/>
   <g font-size="15" fill="#bdc1c6">
-    <text x="74" y="270">▸  Click a citation, read the paper in place</text>
-    <text x="74" y="300">▸  60 fps pinch zoom, one render per gesture</text>
-    <text x="74" y="330">▸  Smooth on weak laptops and heavy scans alike</text>
-    <text x="74" y="360">▸  Cite, Save to library, vector printing</text>
+    <text x="74" y="270">▸  Papers stream in: page 1 before the download ends</text>
+    <text x="74" y="300">▸  Every citation pops up in place, with Cite and Save</text>
+    <text x="74" y="330">▸  60 fps zoom, light on any machine</text>
+    <text x="74" y="360">▸  Night and AMOLED black, vector printing, open source</text>
   </g>
 
   <!-- page mock -->

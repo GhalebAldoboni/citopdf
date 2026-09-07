@@ -1,1 +1,8 @@
-{"name":{"message":"PDF Viewer"},"description":{"message":"แสดงไฟล์ PDF ใดๆ ในเบราว์เซอร์ Chrome ด้วย HTML5 เครื่องมือแก้ไข ดู และแปลง PDF ออนไลน์"}}
+{
+  "name": {
+    "message": "Cito PDF"
+  },
+  "description": {
+    "message": "The instant PDF reader for research. Papers stream in and open at once, every citation pops up in place, and it stays light on any machine."
+  }
+}

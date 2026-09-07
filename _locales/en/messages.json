@@ -1,8 +1,8 @@
 {
   "name": {
-    "message": "Scholar PDF Viewer Lite"
+    "message": "Cito PDF"
   },
   "description": {
-    "message": "Pdf.js based viewer with in-text citation popups, heavy feature and performance optimisations."
+    "message": "The instant PDF reader for research. Papers stream in and open at once, every citation pops up in place, and it stays light on any machine."
   }
 }

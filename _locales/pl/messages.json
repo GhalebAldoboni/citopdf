@@ -1,1 +1,8 @@
-{"name":{"message":"PDF Viewer"},"description":{"message":"Wyświetlaj dowolne pliki PDF w przeglądarce Chrome dzięki HTML5. Edytor, przeglądarka i narzędzie do konwersji plików PDF online."}}
+{
+  "name": {
+    "message": "Cito PDF"
+  },
+  "description": {
+    "message": "The instant PDF reader for research. Papers stream in and open at once, every citation pops up in place, and it stays light on any machine."
+  }
+}

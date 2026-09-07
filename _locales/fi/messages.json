@@ -1,1 +1,8 @@
-{"name":{"message":"PDF Viewer"},"description":{"message":"Näytä kaikki PDF-tiedostot Chrome-selaimessa HTML5:n avulla. Verkkoeditori, -katseluohjelma ja PDF-muunnintyökalu."}}
+{
+  "name": {
+    "message": "Cito PDF"
+  },
+  "description": {
+    "message": "The instant PDF reader for research. Papers stream in and open at once, every citation pops up in place, and it stays light on any machine."
+  }
+}
