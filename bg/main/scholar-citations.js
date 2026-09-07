@@ -1258,6 +1258,13 @@
     } else pf(p.j);
     for (const g of p.ha) No({ A: pv.viewport, j: p.j }, g, pageIndex);
   }
+  function clearArticles() {
+    if (state.da) { try { state.da.close(); } catch (e) {} }
+    for (const p of state.B.values()) p.j && p.j.remove();
+    state.B.clear();
+    state.Nb = [];
+    state.segments = [];
+  }
   function installArticle(article, seg) {
     const groups = A(article, 4);
     if (!groups.length) return;
@@ -1330,24 +1337,55 @@
     }
     return [...rows.entries()].sort((a, b) => b[0] - a[0]).map((r) => r[1].trim());
   }
-  async function segmentsFromText(doc) {
-    const n = doc.numPages, starts = [0];
-    let refsSeen = false;
+  const RE_APPENDIX = /^\s*(appendix|appendices|supplement(al|ary)(\s+(material|materials|information|note|notes))?|supporting information)\b/i;
+  // One pass over the page text: where papers start, where reference lists
+  // are, and where a supplement or appendix begins.
+  async function scanPages(doc) {
+    const n = doc.numPages, flags = [];
     for (let i = 0; i < n; i++) {
-      let lines;
-      try { lines = pageLines(await (await doc.getPage(i + 1)).getTextContent()); } catch (e) { continue; }
-      const isStart = lines.slice(0, 40).some((l) => RE_START.test(l));
-      const hasRefs = lines.some((l) => l.length < 40 && RE_REFS.test(l));
-      if (i > 0 && isStart && refsSeen && i - starts[starts.length - 1] >= 2) { starts.push(i); refsSeen = false; }
-      if (hasRefs) refsSeen = true;
+      let lines = [];
+      try { lines = pageLines(await (await doc.getPage(i + 1)).getTextContent()); } catch (e) {}
+      flags.push({
+        isStart: lines.slice(0, 40).some((l) => RE_START.test(l)),
+        hasRefs: lines.some((l) => l.length < 40 && RE_REFS.test(l)),
+        // a page carrying a numbered reference list, headed or not
+        refList: lines.filter((l) => /^\s*\[\d{1,3}\]\s/.test(l)).length >= 5,
+        isAppendix: lines.slice(0, 8).some((l) => l.length < 60 && RE_APPENDIX.test(l)),
+      });
     }
+    return flags;
+  }
+  function segmentsFromText(flags) {
+    const starts = [0];
+    let refsSeen = false;
+    flags.forEach((f, i) => {
+      if (i > 0 && f.isStart && refsSeen && i - starts[starts.length - 1] >= 2) { starts.push(i); refsSeen = false; }
+      if (f.hasRefs) refsSeen = true;
+    });
     return starts.length >= 2 ? starts : null;
+  }
+  // Scholar's analyzer looks for the reference list near the end of what it is
+  // given. A letter followed by a long supplement (PRL-style: references on
+  // page 8 of 19) therefore yields nothing; hand it the paper up to the end of
+  // its reference list instead. Citations inside the supplement are not linked.
+  function trimAppendix(flags) {
+    const n = flags.length, isRefs = (f) => f.hasRefs || f.refList;
+    const refs = flags.findIndex(isRefs);
+    if (refs < 0) return null;
+    for (let i = refs; i < n; i++) {
+      if (!flags[i].isAppendix) continue;
+      if (flags.slice(i + 1).some(isRefs)) return null;   // the list is after the appendix: nothing to trim
+      const end = i === refs ? i + 1 : i;
+      return n - end >= 3 && end >= 2 ? { start: 0, end } : null;
+    }
+    return null;
   }
   async function segmentDocument(doc) {
     const n = doc.numPages;
-    if (n < SEGMENT_MIN_PAGES) return [{ start: 0, end: n }];
+    const flags = await scanPages(doc);
     // Outlines are not used: most single papers carry one bookmark per section.
-    let starts = await segmentsFromText(doc);
+    state.flags = flags;
+    let starts = n >= SEGMENT_MIN_PAGES ? segmentsFromText(flags) : null;
     if (!starts) return [{ start: 0, end: n }];
     starts = [...new Set([0, ...starts])].sort((a, b) => a - b);
     return starts.map((st, i) => ({ start: st, end: i + 1 < starts.length ? starts[i + 1] : n })).filter((s) => s.end > s.start);
@@ -1404,7 +1442,7 @@
       bytes = await doc.getData();
     } catch (e) { console.warn("scholar-citations: could not read the document bytes", e && e.message); return; }
     if (state.doc !== doc) return;
-    const segments = await segPromise;
+    const segments = window.__gsrSegments || await segPromise;
     if (state.doc !== doc) return;
     if (segments.length > 1) console.log("scholar-citations: " + segments.length + " papers found, analysing each");
     let host;
@@ -1413,8 +1451,22 @@
     host.v.catch((e) => { console.warn("scholar-citations:", e.message); });
     for (const seg of segments) {
       if (state.doc !== doc || state.host !== host) return;
-      const article = await runSegment(host, seg);
+      // A single paper whose reference list is followed by a supplement: the
+      // analyzer may find nothing on the whole file (it expects the list near
+      // the end), and the whole file is slow to analyse. Run the paper up to
+      // its list first so popups appear at once, then the whole file, and keep
+      // the whole-file result only if it found the list (it also links the
+      // supplement's citations).
+      const alt = segments.length === 1 ? trimAppendix(state.flags || []) : null;
+      if (alt) {
+        console.log("scholar-citations: supplement follows the references, analysing pages 1-" + alt.end + " first");
+        const quick = await runSegment(host, alt);
+        if (state.doc !== doc || state.host !== host) return;
+        quick && installArticle(quick, null);
+      }
+      let article = await runSegment(host, seg);
       if (state.doc !== doc || state.host !== host) return;
+      if (alt) { if (article && A(article, 5).length) clearArticles(); else article = null; }
       article && installArticle(article, segments.length > 1 ? seg : null);
     }
     // This viewer renders with its own pdf.js; drop the loader (a second parsed
@@ -1456,5 +1508,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
   // Debug/testing hook.
-  window.__gsrCitations = { analyze, segmentDocument, state };
+  window.__gsrCitations = { analyze, segmentDocument, scanPages, state };
 })();

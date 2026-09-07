@@ -100,7 +100,7 @@ Open any PDF link. Citations turn blue a few seconds after the document loads.
 <td width="50%" valign="top">
 
 ### 📎 Citations, in place
-Click `[12]` or `(Vaswani et al., 2017)`. Scholar's own analyzer finds every citation and reference in a background worker; the reference is resolved on Google Scholar and shown where you are: title, authors, venue, snippet with *Show more*, links to *Cited by*, *Related*, *Versions* and full text. Grouped citations like `[3, 7, 12]` page through with prev/next. *See in References* jumps to the bibliography entry. Journal issues that bundle several papers are split first, so each paper's citations resolve against its own reference list.
+Click `[12]` or `(Vaswani et al., 2017)`. Scholar's own analyzer finds every citation and reference in a background worker; the reference is resolved on Google Scholar and shown where you are: title, authors, venue, snippet with *Show more*, links to *Cited by*, *Related*, *Versions* and full text. Grouped citations like `[3, 7, 12]` page through with prev/next. *See in References* jumps to the bibliography entry. Journal issues that bundle several papers are split first, so each paper's citations resolve against its own reference list, and letters whose references sit before a long supplement are handled too, where the Scholar reader finds nothing.
 
 </td>
 <td width="50%" valign="top">
