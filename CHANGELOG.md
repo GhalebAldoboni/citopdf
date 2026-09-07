@@ -7,6 +7,7 @@ Testing with the unpacked extension unless marked otherwise.
 
 - The extension is now **Cito PDF**. *Cito* is Latin for "swiftly, at once" (doctors still write *cito!* on prescriptions), and it sounds like *cite*: the two things this reader is about. The repository moved to `GhalebAldoboni/citopdf`; old links redirect. Extension name and description updated in every locale, new banner, and a README rewritten around the three things that make the combination a game changer: instant streaming opens, citation popups on every paper, and a light footprint on any machine.
 - New icon: a single quotation mark in the brand gradient on a deep tile (`assets/icon.svg`, rendered to 32, 64 and 128 px; 512 px master in `assets/icon-512.png`).
+- Local files that macOS is still quarantine-scanning right after a download (reads fail for a few seconds, even for the shell) are retried for six seconds instead of failing at once, and the error no longer blames "Allow access to file URLs" unless that setting is actually off.
 - README FAQ, `llms.txt`, a landing page with schema.org metadata at https://ghalebaldoboni.github.io/citopdf/ and a `CITATION.cff`, so search engines and AI assistants can identify the extension and its claims.
 
 ## [1.5.2](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.2) · Citations on ranged loads, idle memory · 2026-09-06

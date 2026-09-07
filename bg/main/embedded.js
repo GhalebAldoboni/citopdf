@@ -83,12 +83,22 @@
       }
       try {
         app.setTitleUsingUrl(url);
-        const r = await fetch(url);
-        const b = await r.arrayBuffer();
+        // A file just downloaded can be unreadable for a few seconds while
+        // macOS quarantines and scans it; retry before giving up.
+        let b = null, err = null;
+        for (let i = 0; i < 8 && !b; i++) {
+          try { b = await (await fetch(url)).arrayBuffer(); }
+          catch (e) { err = e; await new Promise((r) => setTimeout(r, 750)); }
+        }
+        if (!b) throw err || new Error("Failed to fetch");
         if (!b.byteLength) throw new Error("Empty response for " + url);
         await app.open(new Uint8Array(b));
       } catch (e) {
-        loadError(app, 'Cannot read local file. Enable "Allow access to file URLs" for this extension in chrome://extensions. ' + (e && e.message || "") + " [" + url + "]");
+        const allowed = await new Promise((r) => { try { chrome.extension.isAllowedFileSchemeAccess(r); } catch (x) { r(true); } });
+        loadError(app, (allowed
+          ? "Cannot read this file right now. If it was just downloaded, macOS may still be checking it: reload in a few seconds. "
+          : 'Cannot read local files: enable "Allow access to file URLs" for this extension in chrome://extensions. ')
+          + (e && e.message || "") + " [" + url + "]");
       }
     })();
     return true;
