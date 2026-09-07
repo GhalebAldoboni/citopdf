@@ -388,7 +388,14 @@
   // Save needs; without them Save opens the sign-in flow (Hm).
   // ---------------------------------------------------------------------------
   const zg = class {
-    get(a, b) { return fetch(a, this.getOptions(b)).then((c) => c.json()); }
+    get(a, b) {
+      return fetch(a, this.getOptions(b)).then((c) => {
+        // Scholar rate-limits by IP: it answers with a redirect to Google's
+        // "unusual traffic" verification page. Surface that instead of a JSON error.
+        if (/\/sorry\//.test(c.url || "")) { const e = new Error("captcha"); e.captchaUrl = c.url; throw e; }
+        return c.json();
+      });
+    }
     v(a, b) { const c = this.getOptions(void 0); c.method = "POST"; c.body = b; return fetch(a, c).then((d) => d.json()); }
     getOptions(a) { const b = { credentials: "include" }; a && (b.signal = AbortSignal.timeout(a)); return b; }
   };
@@ -768,10 +775,13 @@
             }
           }
         }
-      }).catch(() => {
+      }).catch((err) => {
         if (e === a.I) {
           gj(a.j, !1);
-          const f = jp(c), g = $i(a.v.getMessage("1620"));
+          const f = jp(c);
+          const g = err && err.captchaUrl
+            ? $i('Google Scholar is asking you to confirm you are not a robot before it answers more lookups. <a href="' + err.captchaUrl.replace(/"/g, "&quot;") + '" target="_blank" rel="noopener">Open the check</a>, complete it, then click the citation again.')
+            : $i(a.v.getMessage("1620"));
           lp(a, f, g);
         }
       }));

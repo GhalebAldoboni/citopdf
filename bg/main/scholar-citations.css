@@ -356,3 +356,4 @@ html[data-theme^="dark"] .gsr-dialog a:hover { text-decoration: underline; }
 .gsr-dialog a:link { color: var(--link-color); }
 .gsr-dialog a:visited { color: var(--link-visited-color); }
 .gsr-dialog a:active { color: var(--link-active-color); }
+.gsr-popover-err-msg a{color:inherit;text-decoration:underline;font-weight:600}
