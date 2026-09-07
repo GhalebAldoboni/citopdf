@@ -43,7 +43,7 @@ The first page appears while the file is still downloading. A 200 MB scan shows 
 </td>
 <td width="33%" valign="top" align="center">
 <h3>📎 Cited</h3>
-Click <code>[12]</code> or <code>(Vaswani et al., 2017)</code> and the paper opens right there: title, authors, venue, abstract snippet, <i>Cited by</i>, <i>Cite</i>, <i>Save to library</i>. A 39-page paper with <b>276 references</b> is fully linked ten seconds after it opens.
+Click <code>[12]</code> or <code>(Vaswani et al., 2017)</code> and the paper opens right there: title, authors, venue, abstract snippet, <i>Cited by</i>, <i>Cite</i>, <i>Save to library</i>. A 39-page paper with <b>276 references</b> is fully linked <b>3 s</b> after it opens.
 </td>
 <td width="33%" valign="top" align="center">
 <h3>🪶 Light</h3>
@@ -166,7 +166,7 @@ All measured in Chrome for Testing with the unpacked extension. Method, cause an
 | 7 MB paper on a 2 MB/s link, time to page 1 | 4.5 s | **0.55 s** |
 | Pinch zoom on a figure-heavy paper | ~20 aborted renders, 100 to 200 ms stalls | **61 fps**, one render |
 | First page of a local 7 MB paper | 540 ms | **410 ms** |
-| 39-page paper, 276 references, citations linked | – | **10 s** after open |
+| 39-page paper, 276 references, citations linked | 7.9 s | **3.1 s** after open |
 | Tab hidden 5 minutes, rendered pages held | all | **1** (JS heap 90 MB → 26 MB) |
 
 <br>

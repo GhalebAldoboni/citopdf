@@ -1366,6 +1366,9 @@
           // elements later. Keep the one carrying citation data.
           let u = null; try { u = JSON.parse(t.a); } catch (e) {}
           if (u && (!article || A(u, 4).length || A(u, 5).length)) article = u;
+          // The citations article is all this viewer uses; do not wait for the
+          // later block-elements message.
+          if (u && (A(u, 4).length || A(u, 5).length)) return finish();
           arm(3000);
         }
       });
@@ -1379,6 +1382,9 @@
     if (window.__pdfByteLength > ANALYZE_MAX_BYTES) { console.log("scholar-citations: skipped, document larger than 1 GB"); return; }
     reset();
     state.doc = doc;
+    // Segmentation only needs page text, so it runs while a ranged load is
+    // still finishing its background download.
+    const segPromise = segmentDocument(doc).catch(() => [{ start: 0, end: doc.numPages }]);
     let bytes;
     try {
       // Ranged loads (relay or file://) keep downloading after the pages are
@@ -1388,8 +1394,7 @@
       bytes = await doc.getData();
     } catch (e) { console.warn("scholar-citations: could not read the document bytes", e && e.message); return; }
     if (state.doc !== doc) return;
-    let segments;
-    try { segments = await segmentDocument(doc); } catch (e) { segments = [{ start: 0, end: doc.numPages }]; }
+    const segments = await segPromise;
     if (state.doc !== doc) return;
     if (segments.length > 1) console.log("scholar-citations: " + segments.length + " papers found, analysing each");
     let host;
@@ -1415,7 +1420,7 @@
     bus.on("documentloaded", () => { if (state.doc && state.doc !== app.pdfDocument) reset(); });
     bus.on("pagesloaded", () => {
       const run = () => analyze(app);
-      window.requestIdleCallback ? requestIdleCallback(run, { timeout: 4000 }) : setTimeout(run, 1000);
+      window.requestIdleCallback ? requestIdleCallback(run, { timeout: 500 }) : setTimeout(run, 200);
     });
     bus.on("pagerendered", (e) => {
       const i = e.pageNumber - 1;

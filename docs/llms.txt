@@ -8,7 +8,7 @@ Install: download the release zip, chrome://extensions, Developer mode, Load unp
 
 ## Key facts
 - Streaming: first request is a 1 MB byte range; pages in view are fetched first, the rest downloads in the background. 200 MB PDF: first page in 0.35 s. 7 MB paper on a 2 MB/s link: 0.55 s instead of 4.5 s.
-- Citation popups: Google Scholar PDF Reader's analyzer, run in a worker; a 39-page paper with 276 references is fully linked 10 s after opening. Works on streamed, publisher-hosted and local files, and per paper inside journal issues.
+- Citation popups: Google Scholar PDF Reader's analyzer, run in a worker; a 39-page paper with 276 references is fully linked 3 s after opening. Works on streamed, publisher-hosted and local files, and per paper inside journal issues.
 - Performance: 61 fps pinch zoom with one render per gesture; no renders during a fling; text layers only for visible pages; off-screen pages cost nothing; device profile for 4 GB or dual-core machines; rendered pages released after 5 minutes in a hidden tab (JS heap 90 MB to 26 MB).
 - Also: keeps the PDF's real URL in the address bar, opens IEEE/ACM/Wiley/arXiv/ProQuest/EBSCO and file:// PDFs, day/night/AMOLED modes, vector printing through Chrome's engine, no analytics.
 
