@@ -56,3 +56,8 @@ html[data-night="2"]:root {
 }
 html[data-night="2"] #viewerContainer { background-color: #000; }
 html[data-night="2"] .pdfViewer .page { box-shadow: none; border-color: #000; }
+
+/* un-inverted copies of photographs (night.js) */
+.pdfViewer .page .gsr-photos { position: absolute; inset: 0; pointer-events: none; }
+html[data-night="1"] .pdfViewer .page .gsr-photos canvas,
+html[data-night="2"] .pdfViewer .page .gsr-photos canvas { filter: none; }

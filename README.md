@@ -142,7 +142,7 @@ The address bar shows the PDF's own URL, exactly as with Chrome's viewer: the vi
 <td valign="top">
 
 ### 🌙 Night and AMOLED black
-A button beside *Copy PDF Link* (or Shift+N) cycles day → night → AMOLED black and remembers your choice across tabs. Night inverts the pages to dark grey; AMOLED black sends paper to pure black and text to white while figures keep night mode's exact tones. Applied as a per-page filter, so scrolling and pinch stay at full speed.
+A button beside *Copy PDF Link* (or Shift+N) cycles day → night → AMOLED black and remembers your choice across tabs. Night inverts the pages to dark grey; AMOLED black sends paper to pure black and text to white while figures keep night mode's exact tones. Photographs are left in their real colours in both modes. Applied as a per-page filter, so scrolling and pinch stay at full speed.
 
 </td>
 <td valign="top">
