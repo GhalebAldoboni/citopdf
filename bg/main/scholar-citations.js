@@ -1328,6 +1328,9 @@
   // "Keywords", "CCS Concepts" / "Additional Key Words" (ACM).
   const RE_START = /^\s*(abstract\b|a\s?b\s?s\s?t\s?r\s?a\s?c\s?t\b|index terms|key\s?words|ccs concepts|additional key words|acm reference format)/i;
   const RE_REFS = /^\s*(references|bibliography|literature cited|works cited)\s*$/i;
+  const RE_KEY = "[A-Za-z][A-Za-z0-9+\\-]{0,11}";
+  const RE_ENTRY = new RegExp("^\\[(" + RE_KEY + ")\\]\\s");
+  const RE_CITE = new RegExp("\\[(" + RE_KEY + "(?:\\s*,\\s*" + RE_KEY + ")*)\\]", "g");
   function pageLines(tc) {
     const rows = new Map();
     for (const it of tc.items) {
@@ -1350,6 +1353,7 @@
         hasRefs: lines.some((l) => l.length < 40 && RE_REFS.test(l)),
         // a page carrying a numbered reference list, headed or not
         refList: lines.filter((l) => /^\s*\[\d{1,3}\]\s/.test(l)).length >= 5,
+        keyList: lines.filter((l) => RE_ENTRY.test(l)).length >= 3,
         isAppendix: lines.slice(0, 8).some((l) => l.length < 60 && RE_APPENDIX.test(l)),
       });
     }
@@ -1391,6 +1395,107 @@
     return starts.map((st, i) => ({ start: st, end: i + 1 < starts.length ? starts[i + 1] : n })).filter((s) => s.end > s.start);
   }
 
+  // ---------------------------------------------------------------------------
+  // Keyed reference lists ("[AC91b] J. Schmidhuber. ..."). Scholar's analyzer
+  // finds such a list only under a References heading; web pages printed to
+  // PDF and many technical reports have none, and it then returns nothing.
+  // This builds the same Article structure from the page text: references are
+  // the entries that start with a key, citations are the [KEY] and [K1, K2]
+  // occurrences in the text, and each citation points at its entry.
+  // ---------------------------------------------------------------------------
+  // Lines of one page from pdf.js text items, in PDF user space, with the
+  // x-range of every item so that a substring can be given a box.
+  function textLines(tc) {
+    const rows = new Map();
+    for (const it of tc.items) {
+      if (!it.str || !it.str.trim()) continue;
+      const [a, b, c, d, x, y] = it.transform, h = Math.abs(it.height || d || 10);
+      const key = Math.round(y / Math.max(2, h * 0.4));
+      let row = rows.get(key);
+      if (!row) { row = { y, h, items: [] }; rows.set(key, row); }
+      row.items.push({ x0: x, x1: x + it.width, str: it.str });
+      row.h = Math.max(row.h, h);
+    }
+    const lines = [];
+    for (const row of rows.values()) {
+      row.items.sort((p, q) => p.x0 - q.x0);
+      let text = "", spans = [];
+      for (const it of row.items) {
+        if (text && !/\s$/.test(text) && !/^\s/.test(it.str)) { const gap = it.x0 - spans[spans.length - 1].x1; if (gap > row.h * 0.15) text += " "; }
+        spans.push({ start: text.length, end: text.length + it.str.length, x0: it.x0, x1: it.x1 });
+        text += it.str;
+      }
+      lines.push({ text, spans, y: row.y, top: row.y + row.h, left: row.items[0].x0, right: row.items[row.items.length - 1].x1 });
+    }
+    lines.sort((p, q) => q.y - p.y);
+    return lines;
+  }
+  // x coordinates of text[i..j) on a line
+  function spanX(line, i, j) {
+    let l = Infinity, r = -Infinity;
+    for (const sp of line.spans) {
+      if (sp.end <= i || sp.start >= j) continue;
+      const w = sp.x1 - sp.x0, n = sp.end - sp.start || 1;
+      l = Math.min(l, sp.x0 + w * (Math.max(i, sp.start) - sp.start) / n);
+      r = Math.max(r, sp.x0 + w * (Math.min(j, sp.end) - sp.start) / n);
+    }
+    return l < r ? [l, r] : [line.left, line.right];
+  }
+  async function keyedFallback(doc) {
+    const n = doc.numPages, pages = [];
+    for (let i = 0; i < n; i++) {
+      try { pages.push(textLines(await (await doc.getPage(i + 1)).getTextContent())); } catch (e) { pages.push([]); }
+    }
+    // running headers/footers: identical lines on three or more pages
+    const seen = new Map();
+    for (const lines of pages) for (const l of new Set(lines.map((x) => x.text.trim()))) seen.set(l, (seen.get(l) || 0) + 1);
+    const running = (l) => (seen.get(l.text.trim()) || 0) >= 3;
+    // references: entries starting with a key, on pages that hold several
+    const refs = [], keyIndex = new Map();
+    let inList = false;
+    for (let p = 0; p < n; p++) {
+      const lines = pages[p].filter((l) => !running(l));
+      const starts = lines.filter((l) => RE_ENTRY.test(l.text)).length;
+      if (!inList && starts < 3) continue;
+      inList = true;
+      let cur = null;
+      for (const l of lines) {
+        const m = RE_ENTRY.exec(l.text);
+        if (m) {
+          cur = [p, l.text, null, [[l.left, l.right, l.top, l.y]]];
+          if (!keyIndex.has(m[1])) { keyIndex.set(m[1], refs.length); refs.push(cur); } else cur = null;
+        } else if (cur && cur[0] === p) { cur[1] += " " + l.text; cur[3].push([l.left, l.right, l.top, l.y]); }
+      }
+    }
+    if (refs.length < 10) return null;
+    for (const r of refs) r[1] = r[1].replace(/\s+/g, " ").trim();
+    // citations: [KEY] and [K1, K2] anywhere, pointing at known entries
+    const groups = [];
+    for (let p = 0; p < n; p++) {
+      for (const l of pages[p]) {
+        if (running(l) || RE_ENTRY.test(l.text)) continue;
+        RE_CITE.lastIndex = 0;
+        let m;
+        while ((m = RE_CITE.exec(l.text))) {
+          const keys = m[1].split(",").map((k) => k.trim()), entries = [];
+          let pos = m.index + 1;
+          keys.forEach((k, ki) => {
+            const at = l.text.indexOf(k, pos); pos = at + k.length;
+            const idx = keyIndex.get(k);
+            if (idx === undefined) return;
+            const [x0, x1] = spanX(l, ki === 0 ? m.index : at, ki === keys.length - 1 ? m.index + m[0].length : at + k.length + 1);
+            const text = keys.length === 1 ? "[" + k + "]" : ki === 0 ? "[" + k + "," : ki === keys.length - 1 ? k + "]" : k + ",";
+            entries.push([[[p, [x0, x1, l.top, l.y]]], text, [idx]]);
+          });
+          entries.length && groups.push([[p], entries]);
+        }
+      }
+    }
+    if (groups.length < 5) return null;
+    console.log("scholar-citations: keyed reference list: " + refs.length + " references, " + groups.length + " citation groups");
+    return [null, null, null, groups, refs];
+  }
+
   // Run Scholar's analyzer over one page window of the loaded document.
   // Resolves with the Article proto (jspb JSON) or null.
   function runSegment(host, seg) {
@@ -1409,6 +1514,7 @@
       worker.addEventListener("message", (t) => {
         if (!(t = t.data)) return;
         if ("q" in t) { requests++; arm(article ? 3000 : 120000); }
+        if (window.__gsrDebug && t.o) { const b = t.o; let mode = 0; for (let i = 0; i + 1 < b.length; i++) if (b[i] === 0x58) mode = b[i + 1]; console.log("scholar-citations: outline " + b.length + " bytes, mode " + mode); }
         if (typeof t.a === "string") {
           // The worker posts two articles: citations/references first, block
           // elements later. Keep the one carrying citation data.
@@ -1458,6 +1564,14 @@
       // the whole-file result only if it found the list (it also links the
       // supplement's citations).
       const alt = segments.length === 1 ? trimAppendix(state.flags || []) : null;
+      // A keyed reference list ([AC91b] ...) that Scholar will miss: build the
+      // links from the text first, so they are there in a couple of seconds.
+      let keyed = null;
+      if (segments.length === 1 && (state.flags || []).filter((f) => f.keyList).length >= 2) {
+        try { keyed = await keyedFallback(doc); } catch (e) { keyed = null; }
+        if (state.doc !== doc || state.host !== host) return;
+        keyed && installArticle(keyed, null);
+      }
       if (alt) {
         console.log("scholar-citations: supplement follows the references, analysing pages 1-" + alt.end + " first");
         const quick = await runSegment(host, alt);
@@ -1466,7 +1580,11 @@
       }
       let article = await runSegment(host, seg);
       if (state.doc !== doc || state.host !== host) return;
-      if (alt) { if (article && A(article, 5).length) clearArticles(); else article = null; }
+      if (alt || keyed) { if (article && A(article, 5).length) clearArticles(); else article = null; }
+      if (segments.length === 1 && !article && !alt && !keyed) {
+        try { article = await keyedFallback(doc); } catch (e) { console.warn("scholar-citations: keyed fallback failed", e); article = null; }
+        if (state.doc !== doc || state.host !== host) return;
+      }
       article && installArticle(article, segments.length > 1 ? seg : null);
     }
     // This viewer renders with its own pdf.js; drop the loader (a second parsed
