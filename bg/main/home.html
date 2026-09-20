@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Cito PDF</title>
+  <link rel="icon" type="image/png" href="../../icons/icon32.png">
+  <link rel="stylesheet" href="home.css">
+</head>
+<body>
+  <a class="skip" href="#recent-title">Skip to recent documents</a>
+
+  <div class="shell">
+    <!-- Header -->
+    <header class="top">
+      <div class="brand">
+        <img class="brand-mark" src="../../icons/icon128.png" width="44" height="44" alt="">
+        <div class="brand-text">
+          <h1 class="brand-name">Cito <span class="grad">PDF</span></h1>
+          <p class="brand-tag">Cite swift. Read instantly.</p>
+        </div>
+      </div>
+      <nav class="top-links" aria-label="Project links">
+        <a href="https://ghalebaldoboni.github.io/citopdf/" target="_blank" rel="noopener">About</a>
+        <a href="https://github.com/GhalebAldoboni/citopdf" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Open a document -->
+      <section class="open" aria-labelledby="open-title">
+        <div class="open-copy">
+          <h2 id="open-title">Open a paper</h2>
+          <p>Choose a file, paste a link, or drop a PDF anywhere on this page.</p>
+        </div>
+        <div class="open-actions">
+          <button type="button" class="btn btn-primary" id="open-file">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
+            Open file
+          </button>
+          <!-- Fallback picker; also used by automated tests. -->
+          <input type="file" id="file-input" class="visually-hidden" accept="application/pdf,.pdf" tabindex="-1" aria-hidden="true">
+
+          <form class="url-form" id="url-form" novalidate>
+            <label class="visually-hidden" for="url-input">PDF link, DOI or arXiv id</label>
+            <div class="field">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>
+              <input type="text" id="url-input" inputmode="url" autocomplete="off" spellcheck="false"
+                     placeholder="Paste a PDF link, DOI or arXiv id">
+            </div>
+            <button type="submit" class="btn" id="url-go">Open</button>
+          </form>
+        </div>
+        <p class="hint" id="file-access-hint" hidden>
+          Local PDFs opened straight in Chrome (<code>file://</code>) can use Cito PDF too, and show up here, once
+          <strong>Allow access to file URLs</strong> is on.
+          <button type="button" class="link-btn" id="file-access-open">Open extension settings</button>
+        </p>
+      </section>
+
+      <!-- Recent documents -->
+      <section class="recent" aria-labelledby="recent-title">
+        <div class="section-head">
+          <h2 id="recent-title" tabindex="-1">Recent <span class="count" id="recent-count"></span></h2>
+          <div class="recent-tools" id="recent-tools" hidden>
+            <div class="field field-small">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+              <label class="visually-hidden" for="filter-input">Filter recent documents</label>
+              <input type="search" id="filter-input" placeholder="Filter by title or link" autocomplete="off" spellcheck="false">
+            </div>
+            <button type="button" class="btn btn-quiet" id="clear-all">Clear all</button>
+          </div>
+        </div>
+
+        <p class="status" id="recent-status" role="status" aria-live="polite"></p>
+        <ul class="grid" id="recent-grid"></ul>
+
+        <div class="empty" id="empty" hidden>
+          <h3>Nothing here yet</h3>
+          <p>Every paper you read lands here, with your place kept. Three ways to start:</p>
+          <ol class="ways">
+            <li><span class="way-n">1</span><span><strong>Open any PDF link</strong> in Chrome. Cito PDF takes over on its own.</span></li>
+            <li><span class="way-n">2</span><span><strong>Open file</strong> above, or drop a PDF on this page.</span></li>
+            <li><span class="way-n">3</span><span><strong>Paste a link</strong>, DOI or arXiv id into the box.</span></li>
+          </ol>
+        </div>
+
+        <p class="note">
+          PDFs you open in Chrome, from the web or from <code>file://</code>, appear here by themselves, with your
+          place kept. Files opened with the button or by dropping are listed by name; Chrome may ask for permission
+          again when you reopen one. This list never leaves your computer.
+        </p>
+      </section>
+
+      <!-- What it does -->
+      <section class="strip" aria-labelledby="does-title">
+        <h2 id="does-title" class="strip-title">What Cito PDF does</h2>
+        <ul class="features">
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 5 14h6l-1 7 8-11h-6z"/></svg>
+            <div><h3>Instant streaming</h3><p>Page one appears while the file is still downloading, even at 200 MB.</p></div>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H10l-5 4z"/><path d="M9 9h6M9 12h3"/></svg>
+            <div><h3>Citation popups</h3><p>Click <code>[12]</code> and the cited paper opens in place, with Cite and Save.</p></div>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4C10 4 5 9 5 16c0 1.5.3 2.8.8 4C7 13 11 9 17 7c-4 3-7 7-8 12 7 0 11-5 11-15z"/></svg>
+            <div><h3>Light on any machine</h3><p>Smooth zoom, idle-time rendering, and memory handed back when a tab rests.</p></div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Tips and quick settings -->
+      <div class="two-col">
+        <section class="panel" aria-labelledby="tips-title">
+          <h2 id="tips-title" class="strip-title">Tips</h2>
+          <ul class="tips">
+            <li><span class="keys"><kbd>Shift</kbd><kbd>N</kbd></span><span>Cycle day, night and AMOLED black while reading.</span></li>
+            <li><span class="keys"><kbd>Right-click</kbd></span><span>On a page, copy it as an image or as text.</span></li>
+            <li><span class="keys"><kbd>#gsr=0</kbd></span><span>Add it to a PDF's address to use Chrome's own viewer.</span></li>
+            <li><span class="keys"><kbd>Ctrl</kbd><kbd>Click</kbd></span><span>On a recent paper, open it in a new tab (<kbd>Cmd</kbd> on a Mac).</span></li>
+          </ul>
+        </section>
+
+        <section class="panel" aria-labelledby="settings-title">
+          <h2 id="settings-title" class="strip-title">Quick settings</h2>
+          <div class="settings">
+            <div class="setting" role="group" aria-labelledby="set-night-label">
+              <span class="setting-label" id="set-night-label">Pages</span>
+              <div class="segmented" id="set-night">
+                <button type="button" data-value="0" aria-pressed="false">Day</button>
+                <button type="button" data-value="1" aria-pressed="false">Night</button>
+                <button type="button" data-value="2" aria-pressed="false">AMOLED</button>
+              </div>
+            </div>
+            <div class="setting" role="group" aria-labelledby="set-theme-label">
+              <span class="setting-label" id="set-theme-label">Reader toolbar</span>
+              <div class="segmented" id="set-theme">
+                <button type="button" data-value="dark-1" aria-pressed="false">Dark</button>
+                <button type="button" data-value="light-1" aria-pressed="false">Light</button>
+              </div>
+            </div>
+            <div class="setting">
+              <label class="setting-label" for="set-frames">Support embedded PDFs</label>
+              <input type="checkbox" class="switch" id="set-frames" role="switch">
+            </div>
+            <div class="setting">
+              <span class="setting-label">Custom styles and reset</span>
+              <button type="button" class="btn btn-quiet" id="open-options">More options</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <span id="version">Cito PDF</span>
+      <nav aria-label="Footer links">
+        <a href="https://github.com/GhalebAldoboni/citopdf" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/GhalebAldoboni/citopdf/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+        <a href="https://ghalebaldoboni.github.io/citopdf/" target="_blank" rel="noopener">Website</a>
+      </nav>
+    </footer>
+  </div>
+
+  <!-- Full-page drop target, shown while a file is dragged over the window -->
+  <div class="drop-veil" id="drop-veil" hidden>
+    <div class="drop-card">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      <p>Drop the PDF to open it</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="home.js"></script>
+</body>
+</html>

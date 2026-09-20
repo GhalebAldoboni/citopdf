@@ -87,6 +87,12 @@ const OPTION_DEFAULTS = { theme: "dark-1", enableScripting: !1, disablePageLabel
 const OPTION_TITLES = [["enableScripting", "Enable Scripting"], ["disablePageLabels", "Disable Page Labels"], ["enablePermissions", "Enable Permissions"], ["enablePrintAutoRotate", "Enable Print Auto-Rotate"], ["enableWebGL", "Enable WebGL"], ["historyUpdateUrl", "History Update URL"], ["ignoreDestinationZoom", "Ignore Destination Zoom"], ["renderInteractiveForms", "Render Interactive Forms"], ["useOnlyCssZoom", "Use Only CSS Zoom"], ["disableAutoFetch", "Disable Auto Fetch"], ["disableFontFace", "Disable Font Face"], ["disableRange", "Disable Range"], ["disableStream", "Disable Stream"]];
 chrome.contextMenus.removeAll(() => {
   const name = chrome.runtime.getManifest().name;
+  chrome.contextMenus.create({ id: "home", title: "Cito PDF home", contexts: ["action"] });
+  // Two entries in Chrome's own right-click menu, only inside the viewer
+  // (top-level or framed under a PDF's URL). bg/main/pagecopy.js does the copy.
+  const VIEWER_DOCS = [chrome.runtime.getURL("/bg/helper/web/viewer.html") + "*"];
+  chrome.contextMenus.create({ id: "copy-page-image", title: "Copy page as image", contexts: ["page", "frame", "selection", "image"], documentUrlPatterns: VIEWER_DOCS });
+  chrome.contextMenus.create({ id: "copy-page-text", title: "Copy page text", contexts: ["page", "frame", "selection", "image"], documentUrlPatterns: VIEWER_DOCS });
   chrome.contextMenus.create({ id: "open-with", title: "Open with " + name, contexts: ["link"], targetUrlPatterns: ["*://*/*.PDF", "*://*/*"] });
   chrome.contextMenus.create({ id: "open-with-bg", title: "Open with " + name + " (background)", contexts: ["link"], targetUrlPatterns: ["*://*/*.PDF", "*://*/*"] });
   chrome.storage.local.get({ frames: !1 }, e => chrome.contextMenus.create({ id: "support-embedded-pdfs", title: "Support embedded PDFs", contexts: ["action"], type: "checkbox", checked: e.frames }));
@@ -103,9 +109,26 @@ chrome.contextMenus.removeAll(() => {
 chrome.fileBrowserHandler && chrome.fileBrowserHandler.onExecute.addListener((e, t) => {
   if ("open-as-pdf" === e) for (const o of t.entries) chrome.tabs.create({ url: chrome.runtime.getURL(VIEWER + "?file=" + encodeURIComponent(o.toURL())) });
 });
-chrome.action.onClicked.addListener(() => chrome.tabs.create({ url: VIEWER + "?file=/bg/main/privet.pdf" }));
+// --- Home page (bg/main/home.html): toolbar icon, its "Cito PDF home" menu entry, first install ---
+// An open home tab is focused instead of opening a second one. Without the
+// "tabs" permission tabs.query() cannot match by URL, but runtime.getContexts()
+// (Chrome 116+) lists the extension's own open pages with their tab ids.
+const HOME = chrome.runtime.getURL("/bg/main/home.html");
+const openHome = () => chrome.runtime.getContexts({ contextTypes: ["TAB"], documentUrls: [HOME] })
+  .then(pages => pages.find(p => p.tabId >= 0), () => null)
+  .then(page => {
+    if (!page) return chrome.tabs.create({ url: HOME });
+    chrome.windows.update(page.windowId, { focused: !0 }).catch(() => {});
+    return chrome.tabs.update(page.tabId, { active: !0 });
+  })
+  .catch(() => chrome.tabs.create({ url: HOME }));
+chrome.action.onClicked.addListener(openHome);
+chrome.runtime.onMessage.addListener(m => { m && "cito-home" === m.type && openHome(); });
+chrome.runtime.onInstalled.addListener(e => { "install" === e.reason && openHome(); });
 chrome.contextMenus.onClicked.addListener(({ menuItemId: e, linkUrl: t, checked: o }, n) => {
-  e.startsWith("open-with") ? chrome.tabs.create({ url: stroy(t), index: n.index + 1, active: !1 === e.endsWith("-bg") })
+  "copy-page-image" === e || "copy-page-text" === e ? chrome.runtime.sendMessage({ type: "cito-pagecopy", what: "copy-page-text" === e ? "text" : "image" }).catch(() => {})
+    : "home" === e ? openHome()
+    : e.startsWith("open-with") ? chrome.tabs.create({ url: stroy(t), index: n.index + 1, active: !1 === e.endsWith("-bg") })
     : "support-embedded-pdfs" === e ? chrome.storage.local.set({ frames: o })
     : e.startsWith("dark-") || e.startsWith("light-") ? chrome.storage.local.set({ theme: e })
     : chrome.storage.local.set({ [e]: o });

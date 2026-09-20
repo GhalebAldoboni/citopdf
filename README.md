@@ -73,6 +73,8 @@ Click <code>[12]</code> or <code>(Vaswani et al., 2017)</code> and the paper ope
 | Keeps the PDF's real URL in the address bar | ✓ | ✓ | – | ✓ |
 | Opens publisher-embedded PDFs (IEEE, Wiley…) | – | ✓ | – | ✓ |
 | Night mode and AMOLED black, one click | – | – | – | ✓ |
+| Home page with recent documents and reading progress | – | – | – | ✓ |
+| Copy a page as an image or as text from the right-click menu | – | – | – | ✓ |
 | Open source | – | – | ✓ | ✓ |
 
 <br>
@@ -147,6 +149,9 @@ A button beside *Copy PDF Link* (or Shift+N) cycles day → night → AMOLED bla
 </td>
 <td valign="top">
 
+### 🏠 Home, and copy a page
+The toolbar icon opens a home page with Open file, drop, a link / DOI / arXiv box and your recent documents with thumbnails and the page you left off at. Right-click any page for *Copy page as image* and *Copy page text*, inside Chrome's own menu.
+
 ### 🖨 Vector printing
 Printing goes through Chrome's own PDF engine, so text stays text and lines stay lines. The pdf.js fallback runs at 300 dpi.
 
@@ -218,6 +223,7 @@ Full history in **[CHANGELOG.md](CHANGELOG.md)**; every entry links to a release
 
 | Version | Date | Headline |
 |---|---|---|
+| [1.7.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.7.0) | 2026-09-20 | Home page with recent documents; copy a page as image or text from Chrome's right-click menu. |
 | [1.6.0](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.6.0) | 2026-09-07 | Renamed to Cito PDF. |
 | [1.5.2](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.2) | 2026-09-06 | Citation popups on ranged loads (publisher URLs, local files); rendered pages released after five minutes hidden. |
 | [1.5.1](https://github.com/GhalebAldoboni/citopdf/releases/tag/v1.5.1) | 2026-09-06 | No page spinners while zooming, rotating or resizing. |

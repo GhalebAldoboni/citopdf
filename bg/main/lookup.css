@@ -1,0 +1,15 @@
+/*
+ * macOS Look Up (three-finger tap / force click) on the text layer.
+ *
+ * Intentionally no rules. The text layer's CSS is not what sends Look Up to
+ * Dictionary.app:
+ *  - Chrome only ships the word and its font to the browser process
+ *    (ui/base/mojom/attributed_string.mojom: string + FontAttribute), and
+ *    blink's substring_util.mm drops a fully transparent colour on purpose, so
+ *    `color: transparent` and `opacity: 0.2` do not matter.
+ *  - Hit testing at a word's centre resolves to the .textLayer span with the
+ *    right caret offset with scaleX, `contain: layout` and
+ *    `content-visibility: auto` all active.
+ * The cause is on the browser side, in the out-of-process-iframe path of
+ * RenderWidgetHostViewMac::LookUpDictionaryOverlayAtPoint; see lookup.js.
+ */
