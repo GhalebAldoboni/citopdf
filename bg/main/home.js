@@ -387,9 +387,11 @@
 
   const loadSettings = async () => {
     const v = await storageGet({ theme: "dark-1", night: 0, frames: false });
-    setPressed($("set-theme"), String(v.theme).startsWith("light") ? "light-1" : "dark-1");
+    const theme = String(v.theme).startsWith("light") ? "light-1" : "dark-1";
+    document.documentElement.dataset.theme = theme;      // same palette as the reader (tema.css)
+    setPressed($("set-theme"), theme);
     setPressed($("set-night"), v.night === true ? 1 : Number(v.night) || 0);
-    $("set-frames").checked = !!v.frames;
+    setPressed($("set-frames"), v.frames ? 1 : 0);
   };
 
   // The toolbar icon's right-click menu shows the same switches; keep its ticks in step.
@@ -399,6 +401,7 @@
     $("set-theme").addEventListener("click", (e) => {
       const b = e.target.closest("button"); if (!b) return;
       setPressed($("set-theme"), b.dataset.value);
+      document.documentElement.dataset.theme = b.dataset.value;
       storageSet({ theme: b.dataset.value });
       syncMenu(b.dataset.value, true);
     });
@@ -407,9 +410,12 @@
       setPressed($("set-night"), b.dataset.value);
       storageSet({ night: Number(b.dataset.value) });
     });
-    $("set-frames").addEventListener("change", (e) => {
-      storageSet({ frames: e.target.checked });
-      syncMenu("support-embedded-pdfs", e.target.checked);
+    $("set-frames").addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      const on = b.dataset.value === "1";
+      setPressed($("set-frames"), b.dataset.value);
+      storageSet({ frames: on });
+      syncMenu("support-embedded-pdfs", on);
     });
     $("open-options").addEventListener("click", () => { try { chrome.runtime.openOptionsPage(); } catch (e) {} });
   };

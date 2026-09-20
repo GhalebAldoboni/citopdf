@@ -37,6 +37,22 @@
   const incognito = (() => { try { return !!chrome.extension.inIncognitoContext; } catch (e) { return true; } })();
   if (incognito && !homeFileId) return;
 
+  // Last time the reader was actually being handled. Only real input counts:
+  // pdf.js emits scroll events by itself while it restores a position, so a
+  // scroll listener would never see a gap.
+  let lastBusy = 0;
+  const busy = () => { lastBusy = Date.now(); };
+  for (const ev of ["wheel", "keydown", "pointerdown", "touchstart"]) addEventListener(ev, busy, { capture: true, passive: true });
+  // Runs fn in an idle gap at least 600 ms after the last gesture. After a few
+  // attempts it runs anyway: the remaining main-thread work is a 200 px
+  // downscale, with the JPEG encoding done off the thread.
+  const whenQuiet = (fn, tries) => {
+    const n = tries == null ? 3 : tries;
+    idle(() => {
+      if (n > 0 && Date.now() - lastBusy < 600) { setTimeout(() => whenQuiet(fn, n - 1), 350); return; }
+      fn();
+    }, 1200);
+  };
   const idle = (fn, timeout) => (window.requestIdleCallback
     ? window.requestIdleCallback(fn, { timeout: timeout || 4000 })
     : setTimeout(fn, 600));
@@ -125,39 +141,46 @@
 
   let thumbDone = false;
 
-  const saveThumb = (source, doc) => {
-    try {
-      if (thumbDone || doc !== current || !source || !source.width || !source.height) return;
-      const w = THUMB_WIDTH, h = Math.min(Math.round(source.height * (w / source.width)), Math.round(w * 1.6));
-      const c = document.createElement("canvas");
-      c.width = w; c.height = h;
-      const ctx = c.getContext("2d", { alpha: false });
-      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
-      ctx.imageSmoothingQuality = "high";
-      // Source rectangle: full width, top part of the page when it is very tall.
-      ctx.drawImage(source, 0, 0, source.width, h * (source.width / w), 0, 0, w, h);
-      const data = c.toDataURL("image/jpeg", 0.72);
-      c.width = c.height = 0;
-      if (!data || data.length < 200 || data.length > 120000) return;
-      thumbDone = true;
-      chrome.storage.local.set({ [THUMB_PREFIX + doc.id]: data }, () => { void chrome.runtime.lastError; update({ thumb: true }, false); });
-    } catch (e) {}
+  // identify() builds a fresh object per load event, so compare by id.
+  const sameDoc = (doc) => !!(doc && current && doc.id === current.id);
+
+  // Capture whatever the reader has just drawn: page one when it appears,
+  // otherwise the first page that does (pdf.js restores the last position, so
+  // page one is often never drawn). Nothing is rendered for the thumbnail.
+  let lastRendered = null;
+  const tryThumb = () => {
+    if (thumbDone || !current || !lastRendered) return;
+    const doc = current, view = lastRendered;
+    whenQuiet(() => {
+      if (thumbDone || !sameDoc(doc)) return;
+      saveThumb(view.canvas, doc);
+    });
   };
 
-  // Page 1 was never drawn (the document opened further in): render a small copy ourselves.
-  const renderThumb = (app, doc) => {
+  // Encoding is the expensive half, so it runs off the main thread through an
+  // OffscreenCanvas; the main thread only downscales into a 200 px bitmap.
+  const encode = (c) => (c.convertToBlob
+    ? c.convertToBlob({ type: "image/jpeg", quality: 0.72 }).then((b) => new Promise((res, rej) => {
+        const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(b);
+      }))
+    : Promise.resolve(c.toDataURL("image/jpeg", 0.72)));
+
+  const saveThumb = (source, doc) => {
     try {
-      if (thumbDone || doc !== current || !app.pdfDocument) return;
-      app.pdfDocument.getPage(1).then((page) => {
-        const base = page.getViewport({ scale: 1 });
-        const viewport = page.getViewport({ scale: (THUMB_WIDTH * 2) / base.width });
-        const c = document.createElement("canvas");
-        c.width = Math.ceil(viewport.width); c.height = Math.ceil(viewport.height);
-        const ctx = c.getContext("2d", { alpha: false });
-        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
-        return page.render({ canvasContext: ctx, viewport }).promise.then(() => { saveThumb(c, doc); c.width = c.height = 0; });
-      }).catch(() => {});
-    } catch (e) {}
+      if (thumbDone || !sameDoc(doc) || !source || !source.width || !source.height) return;
+      thumbDone = true;                                  // one attempt per document
+      const w = THUMB_WIDTH, h = Math.min(Math.round(source.height * (w / source.width)), Math.round(w * 1.6));
+      const c = self.OffscreenCanvas ? new OffscreenCanvas(w, h) : Object.assign(document.createElement("canvas"), { width: w, height: h });
+      const ctx = c.getContext("2d", { alpha: false });
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+      ctx.imageSmoothingQuality = "medium";
+      // Source rectangle: full width, top part of the page when it is very tall.
+      ctx.drawImage(source, 0, 0, source.width, h * (source.width / w), 0, 0, w, h);
+      encode(c).then((data) => {
+        if (!data || data.length < 200 || data.length > 120000 || !sameDoc(doc)) { thumbDone = false; return; }
+        chrome.storage.local.set({ [THUMB_PREFIX + doc.id]: data }, () => { void chrome.runtime.lastError; update({ thumb: true }, false); });
+      }).catch(() => { thumbDone = false; });
+    } catch (e) { thumbDone = false; }
   };
 
   // ---- which document is this? ----------------------------------------------
@@ -253,6 +276,7 @@
         flushPage();
         thumbDone = false;
         const doc = current = identify(app);
+        setTimeout(tryThumb, 0);                       // a page may already be drawn
         if (!doc) return;
         const pages = app.pagesCount || app.pdfDocument.numPages || 0;
         const page = app.page > 1 ? { page: app.page } : {};
@@ -261,9 +285,9 @@
         // Keep an existing thumbnail; otherwise wait for page 1, then fall back to our own render.
         chrome.storage.local.get(THUMB_PREFIX + doc.id, (got) => {
           try {
-            if (doc !== current || thumbDone) return;
+            if (!sameDoc(doc) || thumbDone) return;
             if (got && got[THUMB_PREFIX + doc.id]) { thumbDone = true; update({ thumb: true }, false); return; }
-            setTimeout(() => idle(() => renderThumb(app, doc), 5000), 4000);
+            setTimeout(tryThumb, 600);
           } catch (e) {}
         });
       } catch (e) {}
@@ -274,11 +298,15 @@
     // After the other listeners, one of which supplies the Content-Disposition name.
     bus.on("metadataloaded", () => setTimeout(readMeta, 0));
 
+    // Page one can be drawn before the document is identified (with a ranged
+    // load "documentloaded" arrives late), so keep the view and use it as soon
+    // as we know which document this is.
     bus.on("pagerendered", (e) => {
       try {
-        if (thumbDone || !current || !e || e.pageNumber !== 1) return;
-        const doc = current, view = e.source;
-        idle(() => saveThumb(view && view.canvas, doc), 3000);
+        if (thumbDone || !e || !e.source || !e.source.canvas) return;
+        // page one is the nicest cue; any later page still beats none
+        if (!lastRendered || e.pageNumber === 1) lastRendered = e.source;
+        tryThumb();
       } catch (e2) {}
     });
 
