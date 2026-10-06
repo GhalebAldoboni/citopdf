@@ -17,6 +17,16 @@
  * When native printing is not possible (plugin disabled, form edits, non-PDF
  * response, no content script in the frame) it falls back to pdf.js printing,
  * bumped from 150 to 300 dpi.
+ *
+ * One case cannot be printed natively at all: a document handed to the viewer
+ * as bytes while the viewer is the top-level page (the home page's Open file,
+ * a dropped file, a Recent entry reopened from its stored copy). Printing a PDF
+ * needs it in a frame Chrome renders with its own engine, and a blob: frame
+ * inside an extension page is cross-origin there - contentWindow.print() is
+ * blocked and no content script may be injected into it, while the same frame
+ * inside a web page stays same-origin and prints. Such documents therefore
+ * print through pdf.js. Opening the same file from Finder or by its link gives
+ * vector output.
  */
 (() => {
   "use strict";
@@ -82,13 +92,16 @@
   async function nativePrint() {
     const app = window.PDFViewerApplication;
     const doc = app && app.pdfDocument;
-    const url = pdfUrl();
-    if (!doc || !url || navigator.pdfViewerEnabled === false || hasFormEdits(doc) || !(await servesPdf(url))) {
+    if (!doc || navigator.pdfViewerEnabled === false || hasFormEdits(doc)) {
       fallbackPrint();
       return;
     }
     // Embedded in the PDF's own page (bg/main/embed.js): hand the bytes to the
     // page, which prints them through Chrome's PDF engine (Scholar: printBuffer).
+    // This path prints the bytes already in memory, so it asks nothing of the
+    // network and needs no URL: the checks below belong to the frame path,
+    // which has to fetch the document again, and gating this on them demoted
+    // printing to pdf.js's rasteriser whenever a publisher refused the probe.
     if (window.parent !== window && typeof window.__embedPrint === "function") {
       if (printing) return;
       printing = true;
@@ -97,6 +110,10 @@
       finally { printing = false; }
       return;
     }
+    // The frame path loads the document from its own URL, so here the URL has
+    // to exist and really be served as a PDF.
+    const url = pdfUrl();
+    if (!url || !(await servesPdf(url))) { fallbackPrint(); return; }
     if (printing) return;
     printing = true;
     try {
